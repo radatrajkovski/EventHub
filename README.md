@@ -1,6 +1,5 @@
-# event_hub
+# Evenet hub
 
-A new Flutter project.
 
 ## Getting Started
 
