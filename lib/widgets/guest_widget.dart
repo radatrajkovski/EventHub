@@ -1,0 +1,19 @@
+import 'package:flutter/material.dart';
+
+class GuestText1 extends StatelessWidget {
+  const GuestText1({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {},
+      child: const Text(
+        'Nastavi kao gost',
+        style: TextStyle(
+          color: const Color(0xFF2B8CBF),
+          //decoration: TextDecoration.underline,
+        ),
+      ),
+    );
+  }
+}

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'screens/welcome_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -10,46 +11,13 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Event hub',
+      title: 'EventHub',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Color(0xFF268AB2)),
-        useMaterial3: true,
+        primaryColor: const Color(0xFF2B8CBF),
+        scaffoldBackgroundColor: Colors.white,
       ),
-      home: const MyHomePage(title: 'Event hub'),
-    );
-  }
-}
-
-class MyHomePage extends StatelessWidget {
-  const MyHomePage({super.key, required this.title});
-
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(title),
-        centerTitle: true,
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // LOGO (otkomentariši kad dodaš asset)
-            Image.asset('assets/logo.png', width: 140),
-            const SizedBox(height: 30),
-
-            const Text(
-              'Aplikacija je trenutno u izradi.\n'
-              'Molimo Vas da nas posetite kasnije!',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Color(0xFF268AB2), fontSize: 22),
-            ),
-          ],
-        ),
-      ),
+      home: const WelcomeScreen(),
     );
   }
 }
