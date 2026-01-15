@@ -10,7 +10,7 @@ class GuestText1 extends StatelessWidget {
       child: const Text(
         'Nastavi kao gost',
         style: TextStyle(
-          color: const Color(0xFF2B8CBF),
+          color: Color(0xFF2B8CBF),
           //decoration: TextDecoration.underline,
         ),
       ),

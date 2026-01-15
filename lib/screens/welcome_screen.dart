@@ -1,7 +1,12 @@
-import 'package:event_hub/widgets/loginBtn_widget.dart';
+import 'package:event_hub/widgets/primaryBtn_widget.dart';
+
+import 'package:event_hub/widgets/secondaryBtn_widget.dart';
+
 import 'package:flutter/material.dart';
 import '../widgets/guest_widget.dart';
 import '../widgets/logo_widget.dart';
+import 'login_screen.dart';
+import 'register_screen.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -18,14 +23,37 @@ class WelcomeScreen extends StatelessWidget {
         ),
         child: Center(
           child: Column(
+            //    const BackHeader(),
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               LogoWidget(),
-              SizedBox(height: 150),
-              AuthButton(text: 'Prijavi se', isPrimary: true),
-              SizedBox(height: 16),
-              AuthButton(text: 'Registruj se', isPrimary: false),
-              SizedBox(height: 16),
+              const SizedBox(height: 150),
+              PrimaryButton(
+                text: 'Prijavi se',
+                onPressed: () {
+                  // Navigacija na LoginScreen
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const LoginScreen(),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+              SecondaryButton(
+                text: 'Registruj se',
+                onPressed: () {
+                  // Navigacija na RegisterScreen
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const RegisterScreen(),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
               GuestText1(),
             ],
           ),
