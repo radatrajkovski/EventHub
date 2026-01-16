@@ -1,3 +1,4 @@
+import 'package:event_hub/screens/events_guest_screen.dart';
 import 'package:event_hub/widgets/primaryBtn_widget.dart';
 
 import 'package:event_hub/widgets/secondaryBtn_widget.dart';
@@ -54,7 +55,16 @@ class WelcomeScreen extends StatelessWidget {
                 },
               ),
               const SizedBox(height: 16),
-              GuestText1(),
+              GuestText1(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => DiscoverEventsScreen(),
+                    ),
+                  );
+                },
+              ),
             ],
           ),
         ),

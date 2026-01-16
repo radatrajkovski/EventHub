@@ -3,10 +3,8 @@ import 'package:event_hub/widgets/backHeader_widget.dart';
 import 'package:event_hub/widgets/customtTextField.dart';
 import 'package:event_hub/widgets/passwordTextField.dart';
 import 'package:event_hub/widgets/primaryBtn_widget.dart';
-import 'package:event_hub/widgets/secondaryBtn_widget.dart';
 import 'package:flutter/material.dart';
-import '../widgets/guest_widget.dart';
-import 'register_screen.dart';
+
 
 class RegisterScreen extends StatelessWidget {
   const RegisterScreen({super.key});
