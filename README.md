@@ -1,4 +1,4 @@
-# Evenet hub
+# Event hub
 
 
 ## Getting Started
