@@ -14,18 +14,16 @@ class BackHeader extends StatelessWidget {
             children: [
               GestureDetector(
                 onTap: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const WelcomeScreen(),
-                    ),
-                  );
+                  // Proveravamo da li uopšte postoji ekran na koji možemo da se vratimo
+                  if (Navigator.canPop(context)) {
+                    Navigator.pop(context);
+                  }
                 },
                 child: Row(
-                  children: const [
-                    Icon(Icons.arrow_back, color: Colors.black),
-                    SizedBox(width: 4),
-                    Text(
+                  children: [
+                    const Icon(Icons.arrow_back, color: Colors.black),
+                    const SizedBox(width: 4),
+                    const Text(
                       "Nazad",
                       style: TextStyle(color: Colors.black, fontSize: 16),
                     ),

@@ -1,4 +1,5 @@
-import 'package:event_hub/screens/events_guest_screen.dart';
+import 'package:event_hub/screens/events_feed.dart';
+
 import 'package:event_hub/widgets/primaryBtn_widget.dart';
 
 import 'package:event_hub/widgets/secondaryBtn_widget.dart';
@@ -60,7 +61,7 @@ class WelcomeScreen extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => DiscoverEventsScreen(),
+                      builder: (context) => EventsFeedScreen(isGuest: true),
                     ),
                   );
                 },

@@ -1,3 +1,4 @@
+import 'package:event_hub/screens/main_screen.dart';
 import 'package:event_hub/widgets/backHeader_widget.dart';
 import 'package:event_hub/widgets/customtTextField.dart';
 import 'package:event_hub/widgets/passwordTextField.dart';
@@ -78,8 +79,13 @@ class LoginScreen extends StatelessWidget {
                       PrimaryButton(
                         text: "Prijavi se",
                         onPressed: () {
-                          print(
-                            "Login dugme kliknuto: ${emailController.text}",
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  const MainNavigationScreen(isGuest: false),
+                            ),
+                            (route) => false,
                           );
                         },
                       ),
