@@ -16,21 +16,20 @@ class _PasswordTextFieldState extends State<PasswordTextField> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 350,
-      height: 48,
+      width: 321,
+      height: 56,
       child: TextField(
         controller: widget.controller,
         obscureText: _obscureText,
+        style: const TextStyle(fontSize: 14),
         decoration: InputDecoration(
           hintText: widget.hintText,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 14,
-          ),
+          hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+          contentPadding: const EdgeInsets.only(left: 16, right: 0),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
-            borderSide: const BorderSide(color: Color(0xFF2B8CBF)),
+            borderSide: const BorderSide(color: Color(0xFFADD8E6)),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),

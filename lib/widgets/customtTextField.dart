@@ -18,24 +18,23 @@ class CustomTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: width,
-      height: 56, // Povećao sam na 56 da se slaže sa tvojim PrimaryButton
+      height: 56,
       child: TextField(
         controller: controller,
         keyboardType: keyboardType,
         textAlignVertical:
-            TextAlignVertical.center, // Centrira tekst vertikalno
+            TextAlignVertical.center, 
         decoration: InputDecoration(
           hintText: hintText,
           hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
           contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-          // BORDER KADA POLJE MIRUJE
+         
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
             borderSide: const BorderSide(
               color: Color(0xFFADD8E6),
-            ), // Svetlo plava kao na tvom dizajnu
+            ), 
           ),
-          // BORDER KADA KLIKNEŠ NA POLJE
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
             borderSide: const BorderSide(
