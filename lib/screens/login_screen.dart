@@ -28,22 +28,19 @@ class LoginScreen extends StatelessWidget {
               ),
             ),
           ),
-          // Sadržaj ekrana
+
           Column(
             children: [
               // BackHeader zalepljen za vrh
               const SizedBox(height: 24),
               const SafeArea(child: BackHeader()),
 
-              // Scrollable sadržaj ispod strelice
               Expanded(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Column(
                     children: [
-                      const SizedBox(
-                        height: 24,
-                      ), // malo prostora ispod strelice
+                      const SizedBox(height: 24),
                       Image.asset('assets/logo1.png', width: 64, height: 64),
                       const SizedBox(height: 12),
                       const Text(
@@ -66,6 +63,7 @@ class LoginScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 64),
                       CustomTextField(
+                        width: 320,
                         hintText: "Email",
                         controller: emailController,
                         keyboardType: TextInputType.emailAddress,

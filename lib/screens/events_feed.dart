@@ -1,5 +1,5 @@
 import 'package:event_hub/models/event_card.dart';
-import 'package:event_hub/screens/event_details_screen.dart';
+import 'package:event_hub/screens/login_screen.dart';
 import 'package:event_hub/widgets/event_card.dart';
 import 'package:flutter/material.dart';
 
@@ -7,28 +7,94 @@ class EventsFeedScreen extends StatelessWidget {
   final bool isGuest;
 
   EventsFeedScreen({super.key, required this.isGuest});
-
-  // Tvoja lista podataka
   final List<EventModel> testEvents = [
     EventModel(
+      id: "1",
       title: "Tech Innovation Summit 2025",
       category: "TEHNOLOGIJA",
       description:
-          "Ovo je izuzetno dugačak opis koji služi da testiramo kako aplikacija rukuje sa velikom količinom informacija. Tech Innovation Summit 2025 predstavlja centralni događaj za sve ljubitelje novih tehnologija u regionu. Očekuju vas predavanja svetski poznatih govornika iz kompanija kao što su Google, Microsoft i NVIDIA. Pričaćemo o veštačkoj inteligenciji, budućnosti robotike i kako blockchain menja ekonomiju. Pored predavanja, imaćete priliku da učestvujete u praktičnim radionicama gde ćete moći da testirate najnovije VR setove i vidite kako funkcionišu kvantni računari uživo. Obezbeđen je ručak, kafa i osveženje za sve posetioce, kao i sertifikat o učešću na kraju dana. Vidimo se u Novom Sadu!",
+          "Ovo je izuzetno dugačak opis koji služi da testiramo kako aplikacija rukuje sa velikom količinom informacija. Tech Innovation Summit 2025 predstavlja centralni događaj za sve ljubitelje novih tehnologija u regionu.",
       date: "25. decembar 2025.",
       time: "18:00h",
       location: "Hubitat, Mite Ružića 2, Novi Sad",
       freeSpots: 13,
+      spots: 30,
     ),
     EventModel(
+      id: "1",
       title: "Kreativna radionica dizajna",
       category: "EDUKACIJA",
       description:
-          "Pridružite nam se na trosatnoj intenzivnoj radionici gde ćemo prolaziti kroz osnove UI/UX dizajna. Naučićete kako da koristite Figmu kao profesionalac, kako da birate palete boja koje privlače korisnike i kako da kreirate prototip koji oduševljava klijente. Radionica je namenjena početnicima, ali i onima koji žele da usavrše svoje veštine. Potrebno je poneti sopstveni laptop i dobru energiju. Broj mesta je strogo ograničen kako bismo svakom učesniku posvetili dovoljno pažnje i pomogli mu u izradi njegovog prvog portfolia.",
+          "Pridružite nam se na trosatnoj intenzivnoj radionici gde ćemo prolaziti kroz osnove UI/UX dizajna.",
       date: "10. januar 2026.",
       time: "12:00h",
       location: "Creative Hub, Beograd",
       freeSpots: 5,
+      spots: 30,
+    ),
+    EventModel(
+      id: "3",
+      title: "Gastro Fest: Ukusi Balkana",
+      category: "HRANA",
+      description:
+          "Pridružite nam se na najvećem festivalu hrane! Degustacije vrhunskih specijaliteta, radionice sa poznatim kuvarima i muzički program uživo.",
+      date: "15. mart 2026.",
+      time: "14:00h",
+      location: "Limanski park, Novi Sad",
+      freeSpots: 50,
+      spots: 60,
+    ),
+
+    EventModel(
+      id: "4",
+      title: "Yoga & Mindfulness Jutro",
+      category: "ZDRAVLJE",
+      description:
+          "Započnite vikend uz vođenu meditaciju i jogu na otvorenom. Pogodno za sve nivoe, ponesite prostirku i osmeh.",
+      date: "22. mart 2026.",
+      time: "08:30h",
+      location: "Ada Ciganlija, Beograd",
+      freeSpots: 20,
+      spots: 30,
+    ),
+
+    EventModel(
+      id: "5",
+      title: "Startup Networking Night",
+      category: "BIZNIS",
+      description:
+          "Upoznajte investitore i mlade preduzetnike. Kratke prezentacije ideja uz opuštenu atmosferu i networking.",
+      date: "05. april 2026.",
+      time: "19:00h",
+      location: "Science Tech Park, Beograd",
+      freeSpots: 45,
+      spots: 80,
+    ),
+
+    EventModel(
+      id: "6",
+      title: "Izložba: Digitalna Umetnost",
+      category: "KULTURA",
+      description:
+          "Pogledajte kako veštačka inteligencija i digitalni alati transformišu klasično slikarstvo. Radovi lokalnih umetnika.",
+      date: "12. april 2026.",
+      time: "18:00h",
+      location: "Galerija Matice srpske, Novi Sad",
+      freeSpots: 30,
+      spots: 45,
+    ),
+
+    EventModel(
+      id: "7",
+      title: "Planinarski uspon na Frušku Goru",
+      category: "SPORT",
+      description:
+          "Zajednička šetnja stazama zdravlja. Obavezna udobna obuća i flašica vode. Dužina staze je 12km.",
+      date: "19. april 2026.",
+      time: "09:00h",
+      location: "Popovica, Fruška Gora",
+      freeSpots: 15,
+      spots: 30,
     ),
   ];
 
@@ -45,7 +111,11 @@ class EventsFeedScreen extends StatelessWidget {
               const SizedBox(height: 20),
               // LOGO
               Center(
-                child: Image.asset('assets/logo2.png', fit: BoxFit.contain),
+                child: Image.asset(
+                  'assets/logo2.png',
+                  height: 40,
+                  fit: BoxFit.contain,
+                ),
               ),
               const SizedBox(height: 35),
               const Text(
@@ -54,7 +124,7 @@ class EventsFeedScreen extends StatelessWidget {
               ),
               const SizedBox(height: 15),
 
-              // SEARCH (Ovde koristiš tvoj SearchTextField widget)
+              // SEARCH
               const TextField(
                 decoration: InputDecoration(
                   hintText: "Pretražite događaje...",
@@ -67,7 +137,7 @@ class EventsFeedScreen extends StatelessWidget {
 
               const SizedBox(height: 25),
 
-              // BANER ZA GOSTA (Pojavljuje se samo ako je isGuest true)
+              // BANER ZA GOSTA
               if (isGuest) _buildGuestBanner(context),
 
               const SizedBox(height: 20),
@@ -78,21 +148,7 @@ class EventsFeedScreen extends StatelessWidget {
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: testEvents.length,
                 itemBuilder: (context, index) {
-                  return EventCard(
-                    event: testEvents[index],
-                    onTap: () {
-                      // KLJUČNI DEO: Otvaranje detalja
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => EventDetailsScreen(
-                            event: testEvents[index],
-                            isGuest: isGuest,
-                          ),
-                        ),
-                      );
-                    },
-                  );
+                  return EventCard(event: testEvents[index], isGuest: isGuest);
                 },
               ),
               const SizedBox(height: 20),
@@ -128,7 +184,10 @@ class EventsFeedScreen extends StatelessWidget {
             height: 48,
             child: ElevatedButton(
               onPressed: () {
-                // Ovde možeš dodati navigaciju na Login ako ga imaš
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => LoginScreen()),
+                );
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF2B8CBF),

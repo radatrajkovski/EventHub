@@ -21,9 +21,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   void initState() {
     super.initState();
     _screens = [
-      EventsFeedScreen(isGuest: widget.isGuest), // Tvoj postojeći feed
-      const CreateEventScreen(), // Ekran za kreiranje
-      ProfileScreen(isGuest: widget.isGuest), // Ovaj profil koji sad pravimo
+      EventsFeedScreen(isGuest: widget.isGuest),
+      const CreateEventScreen(),
+      ProfileScreen(isGuest: widget.isGuest),
     ];
   }
 

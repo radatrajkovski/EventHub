@@ -16,7 +16,7 @@ class _PasswordTextFieldState extends State<PasswordTextField> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 321,
+      width: 350,
       height: 48,
       child: TextField(
         controller: widget.controller,

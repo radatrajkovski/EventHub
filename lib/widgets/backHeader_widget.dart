@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../screens/welcome_screen.dart';
+
 
 class BackHeader extends StatelessWidget {
   const BackHeader({super.key});
@@ -14,7 +14,6 @@ class BackHeader extends StatelessWidget {
             children: [
               GestureDetector(
                 onTap: () {
-                  // Proveravamo da li uopšte postoji ekran na koji možemo da se vratimo
                   if (Navigator.canPop(context)) {
                     Navigator.pop(context);
                   }

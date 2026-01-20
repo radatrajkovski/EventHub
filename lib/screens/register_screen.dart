@@ -5,7 +5,6 @@ import 'package:event_hub/widgets/passwordTextField.dart';
 import 'package:event_hub/widgets/primaryBtn_widget.dart';
 import 'package:flutter/material.dart';
 
-
 class RegisterScreen extends StatelessWidget {
   const RegisterScreen({super.key});
 
@@ -68,18 +67,21 @@ class RegisterScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 64),
                       CustomTextField(
+                        width: 320,
                         hintText: "Ime",
                         controller: firstNameController,
                         keyboardType: TextInputType.name,
                       ),
                       const SizedBox(height: 16),
                       CustomTextField(
+                        width: 320,
                         hintText: "Prezime",
                         controller: lastNameController,
                         keyboardType: TextInputType.name,
                       ),
                       const SizedBox(height: 16),
                       CustomTextField(
+                        width: 320,
                         hintText: "Email",
                         controller: emailController,
                         keyboardType: TextInputType.emailAddress,

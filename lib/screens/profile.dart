@@ -1,4 +1,10 @@
+import 'dart:io';
+import 'package:event_hub/screens/create_event_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:event_hub/models/event_card.dart';
+import 'package:event_hub/widgets/event_card.dart';
+import 'welcome_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final bool isGuest;
@@ -12,6 +18,84 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
+  // --- PODACI ZA FRONTEND PREZENTACIJU ---
+  File? _image;
+  final ImagePicker _picker = ImagePicker();
+  final TextEditingController _nameController = TextEditingController(
+    text: "Radmila Trajkovski",
+  );
+  bool _isEditing = false;
+
+  final List<EventModel> mojiDogadjaji = [
+    EventModel(
+      id: "1",
+      title: "Tech Innovation Summit 2025",
+      category: "TEHNOLOGIJA",
+      description: "Centralni događaj za nove tehnologije u regionu.",
+      date: "25. decembar 2025.",
+      time: "18:00h",
+      location: "Hubitat, Novi Sad",
+      freeSpots: 13,
+      spots: 40,
+    ),
+    EventModel(
+      id: "2",
+      title: "Dizajn Radionica",
+      category: "EDUKACIJA",
+      description: "Naučite osnove UI/UX dizajna uz stručnjake.",
+      date: "12. januar 2026.",
+      time: "18:00h",
+      location: "Poslovni Centar, Novi Sad",
+      freeSpots: 5,
+      spots: 30,
+    ),
+    EventModel(
+      id: "6",
+      title: "Izložba: Digitalna Umetnost",
+      category: "KULTURA",
+      description:
+          "Pogledajte kako veštačka inteligencija i digitalni alati transformišu klasično slikarstvo. Radovi lokalnih umetnika.",
+      date: "12. april 2026.",
+      time: "18:00h",
+      location: "Galerija Matice srpske, Novi Sad",
+      freeSpots: 30,
+      spots: 60,
+    ),
+  ];
+  final List<EventModel> pristvujem = [
+    EventModel(
+      id: "2",
+      title: "Dizajn Radionica",
+      category: "EDUKACIJA",
+      description: "Naučite osnove UI/UX dizajna uz stručnjake.",
+      date: "12. januar 2026.",
+      time: "18:00h",
+      location: "Poslovni Centar, Novi Sad",
+      freeSpots: 5,
+      spots: 30,
+    ),
+    EventModel(
+      id: "6",
+      title: "Izložba: Digitalna Umetnost",
+      category: "KULTURA",
+      description:
+          "Pogledajte kako veštačka inteligencija i digitalni alati transformišu klasično slikarstvo. Radovi lokalnih umetnika.",
+      date: "12. april 2026.",
+      time: "18:00h",
+      location: "Galerija Matice srpske, Novi Sad",
+      freeSpots: 30,
+      spots: 60,
+    ),
+  ];
+  Future<void> _pickImage() async {
+    final XFile? pickedFile = await _picker.pickImage(
+      source: ImageSource.gallery,
+    );
+    if (pickedFile != null) {
+      setState(() => _image = File(pickedFile.path));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -20,82 +104,140 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
-            // LOGO I PROFILNA (Gornji deo)
-            Center(child: Image.asset('assets/logo2.png', height: 40)),
-            const SizedBox(height: 30),
+            // LOGO I LOGOUT
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const SizedBox(width: 40),
+                Image.asset('assets/logo2.png', height: 40),
+                IconButton(
+                  icon: const Icon(Icons.logout, color: Colors.grey),
+                  onPressed: () => Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const WelcomeScreen(),
+                    ),
+                    (route) => false,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+
+            // PROFILNI DEO
             _buildProfileHeader(),
             const SizedBox(height: 30),
 
-            // SEKCIJA: MOJI DOGAĐAJI (Horizontalni skrol)
+            // SEKCIJA 1: MOJI DOGAĐAJI (GDE SAM JA ADMIN)
             _buildSectionTitle("Moji događaji", showAdd: true),
             const SizedBox(height: 15),
             SizedBox(
-              height: 180, // Visina kartice
+              height: 290,
               child: PageView.builder(
                 controller: _pageController,
                 onPageChanged: (int page) =>
                     setState(() => _currentPage = page),
-                itemCount: 3, // Broj tvojih događaja
-                itemBuilder: (context, index) => _buildMyEventCard(),
+                itemCount: mojiDogadjaji.length,
+                itemBuilder: (context, index) {
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 15),
+                    child: EventCard(
+                      event: mojiDogadjaji[index],
+                      isGuest: widget.isGuest,
+                      isAdmin: true, // Ovo pali ikonice i progress bar
+                    ),
+                  );
+                },
               ),
             ),
             const SizedBox(height: 10),
-            _buildPageIndicator(), // Tačkice
+            _buildPageIndicator(),
+            const SizedBox(height: 35),
 
-            const SizedBox(height: 30),
-
-            // SEKCIJA: DOGAĐAJI KOJIMA PRISUSTVUJEM
+            // SEKCIJA 2: DOGAĐAJI KOJIMA PRISUSTVUJEM (GDE SAM GOST)
             _buildSectionTitle("Događaji kojima prisustvujem", showAdd: false),
             const SizedBox(height: 15),
-            // Ovde idu obične kartice jedna ispod druge
-            _buildAttendingEventCard(),
-            _buildAttendingEventCard(),
+
+            // Ovde ređamo obične kartice jednu ispod druge
+            ...pristvujem.map(
+              (event) => EventCard(
+                event: event,
+                isGuest: widget.isGuest,
+                isAdmin: false, // Običan izgled bez ikonica
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  // Pomoćni vidžet za tačkice (Dots Indicator)
-  Widget _buildPageIndicator() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(3, (index) {
-        return Container(
-          margin: const EdgeInsets.symmetric(horizontal: 4),
-          width: 8,
-          height: 8,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: _currentPage == index
-                ? const Color(0xFF2B8CBF)
-                : Colors.blue.withOpacity(0.2),
-          ),
-        );
-      }),
-    );
-  }
-
   Widget _buildProfileHeader() {
     return Row(
       children: [
-        const CircleAvatar(
-          radius: 35,
-          backgroundImage: AssetImage('assets/avatar.png'), // Stavi neku sliku
+        GestureDetector(
+          onTap: _pickImage,
+          child: Stack(
+            alignment: Alignment.bottomRight,
+            children: [
+              CircleAvatar(
+                radius: 40,
+                backgroundColor: Colors.grey.shade200,
+                backgroundImage: _image != null
+                    ? FileImage(_image!)
+                    : const AssetImage('assets/avatar.png') as ImageProvider,
+              ),
+              Container(
+                padding: const EdgeInsets.all(4),
+                decoration: const BoxDecoration(
+                  color: Color(0xFF2B8CBF),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.camera_alt,
+                  color: Colors.white,
+                  size: 14,
+                ),
+              ),
+            ],
+          ),
         ),
         const SizedBox(width: 15),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
-            Text(
-              "Radmila Trajkovski",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            Text(
-              "trajkovski.radmila@gmail.com",
-              style: TextStyle(color: Colors.grey, fontSize: 14),
-            ),
-          ],
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (_isEditing)
+                TextField(
+                  controller: _nameController,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  decoration: const InputDecoration(isDense: true),
+                )
+              else
+                Text(
+                  _nameController.text,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              const Text(
+                "trajkovski.radmila@gmail.com",
+                style: TextStyle(color: Colors.grey, fontSize: 14),
+              ),
+            ],
+          ),
+        ),
+        IconButton(
+          icon: Icon(
+            _isEditing ? Icons.check_circle : Icons.edit,
+            
+            color: const Color(0xFF2B8CBF),
+          ),
+          onPressed: () => setState(() => _isEditing = !_isEditing),
         ),
       ],
     );
@@ -109,113 +251,43 @@ class _ProfileScreenState extends State<ProfileScreen> {
           title,
           style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
-        if (showAdd) const Icon(Icons.add, color: Colors.black),
+        if (showAdd)
+          IconButton(
+            icon: const Icon(
+              Icons.add_circle_outline,
+              color: Color(0xFF2B8CBF),
+            ),
+            onPressed: () {
+            
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const CreateEventScreen(),
+                ),
+              );
+            },
+          ),
       ],
     );
   }
 
-  // Kartica za horizontalni skrol (sa Edit/Delete ikonicama)
-  Widget _buildMyEventCard() {
-    return Container(
-      margin: const EdgeInsets.only(right: 10),
-      padding: const EdgeInsets.all(15),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: Colors.blue.shade100),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Expanded(
-                child: Text(
-                  "Tech Innovation Summit 2025",
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ),
-              Row(
-                children: const [
-                  Icon(Icons.edit_outlined, size: 18),
-                  SizedBox(width: 10),
-                  Icon(Icons.delete_outline, size: 18),
-                ],
-              ),
-            ],
+  Widget _buildPageIndicator() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(
+        mojiDogadjaji.length,
+        (index) => AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          margin: const EdgeInsets.symmetric(horizontal: 4),
+          width: _currentPage == index ? 20 : 8, // Efekat aktivne stranice
+          height: 8,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(4),
+            color: _currentPage == index
+                ? const Color(0xFF2B8CBF)
+                : Colors.grey.shade300,
           ),
-          const SizedBox(height: 15),
-          _iconText(Icons.calendar_today, "25. decembar 2025."),
-          _iconText(
-            Icons.location_on_outlined,
-            "Hubitat, Mite Ružića 2, Novi Sad",
-          ),
-          _iconText(Icons.people_outline, "13 slobodnih mesta"),
-        ],
-      ),
-    );
-  }
-
-  // Kartica za donju listu (sa "Tehnologija" tagom)
-  Widget _buildAttendingEventCard() {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 15),
-      padding: const EdgeInsets.all(15),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: Colors.blue.shade100),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                "Tech Innovation Summit 2025",
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(5),
-                ),
-                child: const Text(
-                  "TEHNOLOGIJA",
-                  style: TextStyle(fontSize: 10, color: Colors.grey),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            "Lorem Ipsum je jednostavno model teksta koji se koristi...",
-            maxLines: 2,
-            style: TextStyle(fontSize: 12, color: Colors.grey),
-          ),
-          const SizedBox(height: 12),
-          _iconText(Icons.calendar_today, "25. decembar 2025."),
-          _iconText(
-            Icons.location_on_outlined,
-            "Hubitat, Mite Ružića 2, Novi Sad",
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _iconText(IconData icon, String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 5),
-      child: Row(
-        children: [
-          Icon(icon, size: 14, color: Colors.grey),
-          const SizedBox(width: 8),
-          Text(text, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-        ],
+        ),
       ),
     );
   }
