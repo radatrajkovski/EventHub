@@ -29,14 +29,14 @@ class RegisterScreen extends StatelessWidget {
               ),
             ),
           ),
-          // Sadržaj ekrana
+
           Column(
             children: [
-              // BackHeader zalepljen za vrh
+              // BackHeader 
               const SizedBox(height: 24),
               const SafeArea(child: BackHeader()),
 
-              // Scrollable sadržaj ispod strelice
+             
               Expanded(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -44,7 +44,7 @@ class RegisterScreen extends StatelessWidget {
                     children: [
                       const SizedBox(
                         height: 24,
-                      ), // malo prostora ispod strelice
+                      ), 
                       Image.asset('assets/logo1.png', width: 64, height: 64),
                       const SizedBox(height: 12),
                       const Text(

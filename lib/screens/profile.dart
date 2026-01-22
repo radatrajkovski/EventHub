@@ -48,17 +48,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       freeSpots: 5,
       spots: 30,
     ),
-    EventModel(
-      id: "2",
-      title: "Dizajn Radionica",
-      category: "EDUKACIJA",
-      description: "Naučite osnove UI/UX dizajna uz stručnjake.",
-      date: "12. januar 2026.",
-      time: "18:00h",
-      location: "Poslovni Centar, Novi Sad",
-      freeSpots: 5,
-      spots: 30,
-    ),
   ];
 
   final List<EventModel> pristvujem = [
@@ -76,13 +65,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     ),
   ];
 
-
   Future<void> _pickImage() async {
     try {
       final XFile? pickedFile = await _picker.pickImage(
         source: ImageSource.gallery,
-        maxWidth: 800, 
-        imageQuality: 85, 
+        maxWidth: 800,
+        imageQuality: 85,
       );
       if (pickedFile != null) {
         setState(() => _image = File(pickedFile.path));
@@ -100,7 +88,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
-        
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -124,15 +111,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             const SizedBox(height: 20),
 
-            // PROFILNI DEO
+            // Profil
             _buildProfileHeader(),
             const SizedBox(height: 30),
 
-            // SEKCIJA 1: MOJI DOGAĐAJI
+            // Moji događajis
             _buildSectionTitle("Moji događaji", showAdd: true),
             const SizedBox(height: 15),
             SizedBox(
-              height: 290,
+              height:
+                  220, 
               child: PageView.builder(
                 controller: _pageController,
                 onPageChanged: (int page) =>
@@ -144,7 +132,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: EventCard(
                       event: mojiDogadjaji[index],
                       isGuest: widget.isGuest,
-                      isAdmin: true,
+                      isAdmin:
+                          true, 
                     ),
                   );
                 },
@@ -154,7 +143,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _buildPageIndicator(),
             const SizedBox(height: 35),
 
-            // SEKCIJA 2: DOGAĐAJI KOJIMA PRISUSTVUJEM
             _buildSectionTitle("Događaji kojima prisustvujem", showAdd: false),
             const SizedBox(height: 15),
             ...pristvujem.map(
@@ -163,7 +151,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: EventCard(
                   event: event,
                   isGuest: widget.isGuest,
-                  isAdmin: false,
+                  isAdmin: false, 
                 ),
               ),
             ),

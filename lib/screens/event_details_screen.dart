@@ -1,11 +1,11 @@
 import 'package:event_hub/models/event_card.dart';
 import 'package:event_hub/widgets/backHeader_widget.dart';
-import 'package:event_hub/widgets/customtTextField.dart'; // Proveri da li je malo 't' u nazivu fajla
+import 'package:event_hub/widgets/customtTextField.dart';
 import 'package:event_hub/widgets/event_details_widget.dart';
 import 'package:event_hub/widgets/weather_widget.dart';
 import 'package:flutter/material.dart';
 
-class EventDetailsScreen extends StatelessWidget {
+class EventDetailsScreen extends StatefulWidget {
   final EventModel event;
   final bool isGuest;
   final bool isEditing;
@@ -18,33 +18,119 @@ class EventDetailsScreen extends StatelessWidget {
   });
 
   @override
+  State<EventDetailsScreen> createState() => _EventDetailsScreenState();
+}
+
+class _EventDetailsScreenState extends State<EventDetailsScreen> {
+  late TextEditingController _titleController;
+  late TextEditingController _locationController;
+  late TextEditingController _dateTimeController;
+  late TextEditingController _spotsController;
+  late TextEditingController _descriptionController;
+
+  @override
+  void initState() {
+    super.initState();
+    _titleController = TextEditingController(text: widget.event.title);
+    _locationController = TextEditingController(text: widget.event.location);
+    _dateTimeController = TextEditingController(
+      text: "${widget.event.date} ${widget.event.time}",
+    );
+    _spotsController = TextEditingController(
+      text: widget.event.spots.toString(),
+    );
+    _descriptionController = TextEditingController(
+      text: widget.event.description,
+    );
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _locationController.dispose();
+    _dateTimeController.dispose();
+    _spotsController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
+  }
+
+  // funk za prikaz popupa
+  void _showSuccessDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // kor mora da klikne na dugme
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Text(
+            "JEJ! 🎉",
+            textAlign: TextAlign.center,
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          content: const Text(
+            "Događaj je uspešno izmenjen!",
+            textAlign: TextAlign.center,
+          ),
+          actions: [
+            Center(
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF2B8CBF),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  Navigator.of(context).popUntil((route) => route.isFirst);
+                },
+                child: const Text("OK", style: TextStyle(color: Colors.white)),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final bool showAsDisabled = widget.isGuest && !widget.isEditing;
+    final Color buttonColor = showAsDisabled
+        ? Colors.grey.shade400
+        : const Color(0xFF2B8CBF);
+    final Color textColor = showAsDisabled
+        ? Colors.grey.shade700
+        : Colors.white;
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
         child: Column(
           children: [
-            // 1. FIKSNO ZAGLAVLJE (Strelica nazad)
             const BackHeader(),
-
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // 2. KATEGORIJA (Mali badge u uglu)
+                 //kat
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 10,
                         vertical: 5,
                       ),
                       decoration: BoxDecoration(
-                        color: event.getCategoryColor(event.category),
+                        color: widget.event.getCategoryColor(
+                          widget.event.category,
+                        ),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
-                        event.category.toUpperCase(),
+                        widget.event.category.toUpperCase(),
                         style: const TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
@@ -54,17 +140,16 @@ class EventDetailsScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
 
-                    // 3. DINAMIČKI SADRŽAJ (Prikaz ili Edit forma)
-                    if (isEditing)
-                      _buildEditFields(event)
-                    else
-                      _buildInfoDisplay(event),
+                    // Edit forma ili Prikaz info
+                    widget.isEditing
+                        ? _buildEditFields()
+                        : _buildInfoDisplay(widget.event),
 
                     const SizedBox(height: 25),
                     const WeatherWidget(),
                     const SizedBox(height: 30),
 
-                    // 4. OPIS (Takođe se menja u edit modu)
+                    // OPIS
                     const Text(
                       "O događaju",
                       style: TextStyle(
@@ -73,17 +158,15 @@ class EventDetailsScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    isEditing
+                    widget.isEditing
                         ? CustomTextField(
                             width: double.infinity,
                             hintText: "Unesite opis događaja...",
-                            controller: TextEditingController(
-                              text: event.description,
-                            ),
-                            // Ako tvoj CustomTextField podržava maxLines, ovde bi išlo to
+                            controller: _descriptionController,
+                            maxLines: 5,
                           )
                         : Text(
-                            event.description,
+                            widget.event.description,
                             style: const TextStyle(
                               fontSize: 15,
                               color: Colors.black87,
@@ -92,43 +175,37 @@ class EventDetailsScreen extends StatelessWidget {
                           ),
 
                     const SizedBox(height: 40),
-
-                    // 5. GLAVNO DUGME
                     ElevatedButton(
-                      onPressed: () {
-                        if (isEditing) {
-                          // Simulacija čuvanja
-                          Navigator.pop(context);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text("Izmene su sačuvane!"),
-                            ),
-                          );
-                        } else {
-                          if (!isGuest) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text("Uspešno ste se prijavili!"),
-                              ),
-                            );
-                          }
-                        }
-                      },
+                      onPressed: showAsDisabled
+                          ? null
+                          : () {
+                              if (widget.isEditing) {
+                                _showSuccessDialog();
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text("Uspešno ste se prijavili!"),
+                                  ),
+                                );
+                              }
+                            },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF2B8CBF),
+                        backgroundColor: buttonColor,
+                        disabledBackgroundColor: Colors.grey.shade400,
                         minimumSize: const Size(double.infinity, 56),
+                        elevation: showAsDisabled ? 0 : 2,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
                         ),
                       ),
                       child: Text(
-                        isEditing
+                        widget.isEditing
                             ? "SAČUVAJ IZMENE"
-                            : (isGuest
+                            : (widget.isGuest
                                   ? "ULOGUJTE SE DA SE PRIDRUŽITE"
                                   : "PRIDRUŽI SE DOGAĐAJU"),
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: textColor,
                           fontWeight: FontWeight.bold,
                           fontSize: 15,
                         ),
@@ -144,8 +221,6 @@ class EventDetailsScreen extends StatelessWidget {
       ),
     );
   }
-
-  // POMOĆNI WIDGET ZA PRIKAZ (Običan tekst)
   Widget _buildInfoDisplay(EventModel event) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -183,8 +258,7 @@ class EventDetailsScreen extends StatelessWidget {
     );
   }
 
-  // POMOĆNI WIDGET ZA EDIT (Tvoja Custom polja)
-  Widget _buildEditFields(EventModel event) {
+  Widget _buildEditFields() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -192,40 +266,33 @@ class EventDetailsScreen extends StatelessWidget {
         CustomTextField(
           width: double.infinity,
           hintText: "Naziv",
-          controller: TextEditingController(text: event.title),
+          controller: _titleController,
         ),
         const SizedBox(height: 16),
-
         _editLabel("Lokacija"),
         CustomTextField(
           width: double.infinity,
           hintText: "Lokacija",
-          controller: TextEditingController(text: event.location),
+          controller: _locationController,
         ),
         const SizedBox(height: 16),
-
         _editLabel("Datum i vreme"),
         CustomTextField(
           width: double.infinity,
           hintText: "Npr. 25. Decembar, 18:00h",
-          controller: TextEditingController(
-            text: "${event.date} ${event.time}",
-          ),
+          controller: _dateTimeController,
         ),
         const SizedBox(height: 16),
-
         _editLabel("Ukupan broj mesta"),
         CustomTextField(
           width: double.infinity,
           hintText: "Broj mesta",
-          controller: TextEditingController(text: event.spots.toString()),
-          keyboardType: TextInputType.number,
+          controller: _spotsController,
         ),
       ],
     );
   }
 
-  // Mali pomoćni widget za labelu iznad polja
   Widget _editLabel(String text) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8, left: 4),

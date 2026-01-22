@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class GuestText1 extends StatelessWidget {
-  final VoidCallback onTap; // Dodajemo ovo
+  final VoidCallback onTap;
   const GuestText1({super.key, required this.onTap});
 
   @override

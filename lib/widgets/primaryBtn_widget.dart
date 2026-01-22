@@ -4,7 +4,7 @@ class PrimaryButton extends StatelessWidget {
   final String text;
   final VoidCallback? onPressed;
 
-  // Popravljen konstruktor: uklonjen Future<dynamic>
+
   const PrimaryButton({super.key, required this.text, this.onPressed});
 
   @override

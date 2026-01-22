@@ -1,4 +1,4 @@
-import 'package:event_hub/widgets/backHeader_widget.dart';
+import 'package:event_hub/screens/main_screen.dart';
 import 'package:event_hub/widgets/customtTextField.dart';
 import 'package:flutter/material.dart';
 
@@ -10,14 +10,15 @@ class CreateEventScreen extends StatefulWidget {
 }
 
 class _CreateEventScreenState extends State<CreateEventScreen> {
+  // 1. KONTROLERI ZA INPUT POLJA
   final TextEditingController nameController = TextEditingController();
   final TextEditingController locationController = TextEditingController();
   final TextEditingController dateController = TextEditingController();
-  final TextEditingController timeController =
-      TextEditingController(); // Dodao poseban kontroler za vreme
+  final TextEditingController timeController = TextEditingController();
   final TextEditingController descController = TextEditingController();
   final TextEditingController spotsController = TextEditingController();
 
+  // 2. KATEGORIJE
   String? selectedCategory;
   final List<String> categories = [
     'Tehnologija',
@@ -27,13 +28,72 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   ];
 
   @override
+  void dispose() {
+    nameController.dispose();
+    locationController.dispose();
+    dateController.dispose();
+    timeController.dispose();
+    descController.dispose();
+    spotsController.dispose();
+    super.dispose();
+  }
+
+  void _showSuccessPopup() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Text(
+            "JEJ! 🎉",
+            textAlign: TextAlign.center,
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          content: const Text(
+            "Događaj je uspešno kreiran!",
+            textAlign: TextAlign.center,
+          ),
+          actions: [
+            Center(
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF2B8CBF),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                onPressed: () {
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          MainNavigationScreen(isGuest: false),
+                    ),
+                    (route) =>
+                        false, 
+                  );
+               
+                },
+                child: const Text("OK", style: TextStyle(color: Colors.white)),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
         child: Column(
           children: [
-            const BackHeader(),
+            //const BackHeader(),
+            const SizedBox(height: 20),
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(
@@ -60,20 +120,29 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
+
+                    // Naziv događaja
                     CustomTextField(
                       hintText: "Naziv događaja",
                       controller: nameController,
                       width: double.infinity,
                     ),
                     const SizedBox(height: 20),
+
+                   //Vece polje za opis
                     _buildLargeDescriptionField(),
+
                     const SizedBox(height: 20),
+
+                    // Lokacija
                     CustomTextField(
                       hintText: "Lokacija",
                       controller: locationController,
                       width: double.infinity,
                     ),
                     const SizedBox(height: 20),
+
+                    //Datum i Vreme
                     Row(
                       children: [
                         Expanded(
@@ -94,6 +163,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                       ],
                     ),
                     const SizedBox(height: 30),
+
                     const Text(
                       "Dodatne informacije",
                       style: TextStyle(
@@ -102,21 +172,26 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                       ),
                     ),
                     const SizedBox(height: 20),
+
+                    // Kategorija Dropdown
                     _buildDropdown(),
+
                     const SizedBox(height: 20),
-                    _buildSpotsField(),
+
+                    // Broj mesta
+                    CustomTextField(
+                      hintText: "Broj slobodnih mesta",
+                      controller: spotsController,
+                      width: double.infinity,
+                                       ),
+
                     const SizedBox(height: 40),
 
-                    // --- POPRAVLJENO DUGME ---
+                    // GLAVNO DUGME
                     ElevatedButton(
                       onPressed: () {
-                        Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text("Događaj je uspešno kreiran!"),
-                            backgroundColor: Color(0xFF2B8CBF),
-                          ),
-                        );
+               
+                        _showSuccessPopup();
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF2B8CBF),
@@ -147,28 +222,24 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     );
   }
 
-  Widget _buildSpotsField() {
-    return CustomTextField(
-      controller: spotsController,
-      hintText: "Broj slobodnih mesta",
-      width: double.infinity,
-    );
-  }
-
   Widget _buildLargeDescriptionField() {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFADD8E6)),
+        border: Border.all(
+          color: const Color(0xFFADD8E6),
+        ), 
       ),
       child: TextField(
         controller: descController,
         maxLines: 6,
+        minLines: 4,
+        keyboardType: TextInputType.multiline,
         decoration: InputDecoration(
-          hintText: "Unesite detaljan opis...",
-          hintStyle: TextStyle(color: Colors.grey.shade300, fontSize: 14),
+          hintText: "Unesite detaljan opis događaja...",
+          hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.all(15),
         ),
@@ -179,7 +250,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   Widget _buildDropdown() {
     return Container(
       width: double.infinity,
-      height: 55, // Malo povećana visina da se slaže sa CustomTextField
+      height: 55,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
@@ -189,8 +260,8 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
         child: DropdownButton<String>(
           value: selectedCategory,
           hint: Text(
-            "Kategorija",
-            style: TextStyle(color: Colors.grey.shade400, fontSize: 13),
+            "Izaberi kategoriju",
+            style: TextStyle(color: Colors.grey.shade400, fontSize: 14),
           ),
           isExpanded: true,
           icon: const Icon(Icons.keyboard_arrow_down, color: Color(0xFF2B8CBF)),
@@ -198,11 +269,15 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
               .map(
                 (c) => DropdownMenuItem(
                   value: c,
-                  child: Text(c, style: const TextStyle(fontSize: 14)),
+                  child: Text(c, style: const TextStyle(fontSize: 15)),
                 ),
               )
               .toList(),
-          onChanged: (val) => setState(() => selectedCategory = val),
+          onChanged: (val) {
+            setState(() {
+              selectedCategory = val;
+            });
+          },
         ),
       ),
     );

@@ -16,12 +16,46 @@ class EventCard extends StatelessWidget {
     this.onTap,
   });
 
+
+  void _showDeleteDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Text("Žao nam je!", textAlign: TextAlign.center),
+          content: const Text(
+            "Događaj je obrisan :(",
+            textAlign: TextAlign.center,
+            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
+          ),
+          actions: [
+            Center(
+              child: TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text(
+                  "U REDU",
+                  style: TextStyle(color: Colors.grey),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final int prijavljeno = event.spots - event.freeSpots;
     final double procenatPopunjenosti = event.spots > 0
         ? prijavljeno / event.spots
         : 0.0;
+
     return GestureDetector(
       onTap:
           onTap ??
@@ -36,11 +70,10 @@ class EventCard extends StatelessWidget {
           },
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
-        // Glavni Row koji odvaja belu karticu od ikonica sa strane
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // BELA KARTICA
+           
             Expanded(
               child: Container(
                 padding: const EdgeInsets.all(16),
@@ -55,10 +88,8 @@ class EventCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Red sa naslovom i kategorijom
                     Row(
-                      mainAxisAlignment: MainAxisAlignment
-                          .spaceBetween, // Gura kategoriju DESNO
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Expanded(
                           child: Text(
@@ -70,7 +101,6 @@ class EventCard extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        // KATEGORIJA (Sada je poravnata desno)
                         Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 8,
@@ -82,7 +112,7 @@ class EventCard extends StatelessWidget {
                           ),
                           child: Text(
                             event.category.toUpperCase(),
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 9,
                               fontWeight: FontWeight.bold,
                               color: Colors.black87,
@@ -105,7 +135,6 @@ class EventCard extends StatelessWidget {
                             "Popunjenost:",
                             style: TextStyle(fontSize: 11, color: Colors.grey),
                           ),
-                          // DINAMIČKI ISPIS: npr. 17 / 30
                           Text(
                             "$prijavljeno / ${event.spots}",
                             style: const TextStyle(
@@ -115,11 +144,9 @@ class EventCard extends StatelessWidget {
                           ),
                         ],
                       ),
-
                       const SizedBox(height: 6),
                       LinearProgressIndicator(
-                        value:
-                            procenatPopunjenosti, // Automatski pomera plavu traku
+                        value: procenatPopunjenosti,
                         backgroundColor: Colors.grey[200],
                         color: const Color(0xFF2B8CBF),
                         minHeight: 6,
@@ -137,7 +164,7 @@ class EventCard extends StatelessWidget {
               ),
             ),
 
-            // IKONICE DESNO (Van bele kartice - samo za Admina)
+         
             if (isAdmin)
               Padding(
                 padding: const EdgeInsets.only(left: 8),
@@ -147,15 +174,13 @@ class EventCard extends StatelessWidget {
                     IconButton(
                       visualDensity: VisualDensity.compact,
                       onPressed: () {
-                        // Navigacija na Edit/Details ekran sa popunjenim podacima
                         Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) => EventDetailsScreen(
                               event: event,
                               isGuest: isGuest,
-                              isEditing:
-                                  true, // Dodajemo ovaj flag da ekran zna da je u modu izmene
+                              isEditing: true,
                             ),
                           ),
                         );
@@ -168,11 +193,11 @@ class EventCard extends StatelessWidget {
                     ),
                     IconButton(
                       visualDensity: VisualDensity.compact,
-                      onPressed: () {},
+                      onPressed: () => _showDeleteDialog(context),
                       icon: const Icon(
                         Icons.delete_outline,
                         size: 22,
-                        color: Colors.black54,
+                        color: Colors.black54, // SIVA KANTICA
                       ),
                     ),
                   ],
