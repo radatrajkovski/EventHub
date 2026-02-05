@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'dart:ui';
 
 class EventModel {
   final String id;
@@ -10,7 +10,7 @@ class EventModel {
   final String location;
   final int freeSpots;
   final int spots;
-  final String organizerName;
+  final String creatorId; // UID korisnika koji je kreirao
 
   EventModel({
     required this.id,
@@ -22,30 +22,34 @@ class EventModel {
     required this.location,
     required this.freeSpots,
     required this.spots,
-    this.organizerName = "Radmila Trajkovski",
+    required this.creatorId,
   });
 
-
-  static const List<String> kategorije = [
-    'TEHNOLOGIJA',
-    'MUZIKA',
-    'UMETNOST',
-    'SPORT',
-    'EDUKACIJA',
-    'BIZNIS',
-  ];
+  // Metoda koja pretvara podatke iz baze u tvoj model
+  factory EventModel.fromFirestore(
+    Map<String, dynamic> data,
+    String documentId,
+  ) {
+    return EventModel(
+      id: documentId,
+      title: data['title'] ?? '',
+      category: data['category'] ?? 'OSTALO',
+      description: data['description'] ?? '',
+      date: data['date'] ?? '',
+      time: data['time'] ?? '',
+      location: data['location'] ?? '',
+      freeSpots: data['freeSpots'] ?? 0,
+      spots: data['spots'] ?? 0,
+      creatorId: data['creatorId'] ?? '',
+    );
+  }
 
   Color getCategoryColor(String category) {
     final cat = category.toUpperCase();
-
     if (cat.contains('TEH')) return const Color(0xFFE3F2FD);
     if (cat.contains('MUZ')) return const Color(0xFFF3E5F5);
     if (cat.contains('SPO')) return const Color(0xFFFFF3E0);
     if (cat.contains('EDU')) return const Color(0xFFE8F5E9);
-    if (cat.contains('HRA')) return const Color(0xFFFFEBEE);
-    if (cat.contains('ZDR')) return const Color(0xFFE0F2F1);
-    if (cat.contains('KUL')) return const Color(0xFFFFFDE7);
-    if (cat.contains('BIZ')) return const Color(0xFFECEFF1);
     return const Color(0xFFF5F5F5);
   }
 }

@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart'; // DODAJ OVO
 import 'package:event_hub/models/event_card.dart';
 import 'package:event_hub/screens/login_screen.dart';
 import 'package:event_hub/widgets/event_card.dart';
@@ -6,97 +7,7 @@ import 'package:flutter/material.dart';
 class EventsFeedScreen extends StatelessWidget {
   final bool isGuest;
 
-  EventsFeedScreen({super.key, required this.isGuest});
-  final List<EventModel> testEvents = [
-    EventModel(
-      id: "1",
-      title: "Tech Innovation Summit 2025",
-      category: "TEHNOLOGIJA",
-      description:
-          "Ovo je izuzetno dugačak opis koji služi da testiramo kako aplikacija rukuje sa velikom količinom informacija. Tech Innovation Summit 2025 predstavlja centralni događaj za sve ljubitelje novih tehnologija u regionu.",
-      date: "25. decembar 2025.",
-      time: "18:00h",
-      location: "Hubitat, Mite Ružića 2, Novi Sad",
-      freeSpots: 13,
-      spots: 30,
-    ),
-    EventModel(
-      id: "1",
-      title: "Kreativna radionica dizajna",
-      category: "EDUKACIJA",
-      description:
-          "Pridružite nam se na trosatnoj intenzivnoj radionici gde ćemo prolaziti kroz osnove UI/UX dizajna.",
-      date: "10. januar 2026.",
-      time: "12:00h",
-      location: "Creative Hub, Beograd",
-      freeSpots: 5,
-      spots: 30,
-    ),
-    EventModel(
-      id: "3",
-      title: "Gastro Fest: Ukusi Balkana",
-      category: "HRANA",
-      description:
-          "Pridružite nam se na najvećem festivalu hrane! Degustacije vrhunskih specijaliteta, radionice sa poznatim kuvarima i muzički program uživo.",
-      date: "15. mart 2026.",
-      time: "14:00h",
-      location: "Limanski park, Novi Sad",
-      freeSpots: 50,
-      spots: 60,
-    ),
-
-    EventModel(
-      id: "4",
-      title: "Yoga & Mindfulness Jutro",
-      category: "ZDRAVLJE",
-      description:
-          "Započnite vikend uz vođenu meditaciju i jogu na otvorenom. Pogodno za sve nivoe, ponesite prostirku i osmeh.",
-      date: "22. mart 2026.",
-      time: "08:30h",
-      location: "Ada Ciganlija, Beograd",
-      freeSpots: 20,
-      spots: 30,
-    ),
-
-    EventModel(
-      id: "5",
-      title: "Startup Networking Night",
-      category: "BIZNIS",
-      description:
-          "Upoznajte investitore i mlade preduzetnike. Kratke prezentacije ideja uz opuštenu atmosferu i networking.",
-      date: "05. april 2026.",
-      time: "19:00h",
-      location: "Science Tech Park, Beograd",
-      freeSpots: 45,
-      spots: 80,
-    ),
-
-    EventModel(
-      id: "6",
-      title: "Izložba: Digitalna Umetnost",
-      category: "KULTURA",
-      description:
-          "Pogledajte kako veštačka inteligencija i digitalni alati transformišu klasično slikarstvo. Radovi lokalnih umetnika.",
-      date: "12. april 2026.",
-      time: "18:00h",
-      location: "Galerija Matice srpske, Novi Sad",
-      freeSpots: 30,
-      spots: 45,
-    ),
-
-    EventModel(
-      id: "7",
-      title: "Planinarski uspon na Frušku Goru",
-      category: "SPORT",
-      description:
-          "Zajednička šetnja stazama zdravlja. Obavezna udobna obuća i flašica vode. Dužina staze je 12km.",
-      date: "19. april 2026.",
-      time: "09:00h",
-      location: "Popovica, Fruška Gora",
-      freeSpots: 15,
-      spots: 30,
-    ),
-  ];
+  const EventsFeedScreen({super.key, required this.isGuest});
 
   @override
   Widget build(BuildContext context) {
@@ -109,7 +20,6 @@ class EventsFeedScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 20),
-              // LOGO
               Center(
                 child: Image.asset(
                   'assets/logo2.png',
@@ -124,7 +34,7 @@ class EventsFeedScreen extends StatelessWidget {
               ),
               const SizedBox(height: 15),
 
-              // SEARCH
+              // SEARCH (Za sada samo UI)
               const TextField(
                 decoration: InputDecoration(
                   hintText: "Pretražite događaje...",
@@ -137,18 +47,59 @@ class EventsFeedScreen extends StatelessWidget {
 
               const SizedBox(height: 25),
 
-              // BANER ZA GOSTA
               if (isGuest) _buildGuestBanner(context),
 
               const SizedBox(height: 20),
 
-              // LISTA KARTICA
-              ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: testEvents.length,
-                itemBuilder: (context, index) {
-                  return EventCard(event: testEvents[index], isGuest: isGuest);
+              // --- OVDE KREĆE MAGIJA: STREAMBUILDER UMESTO STATIČKE LISTE ---
+              StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('events')
+                    .orderBy('createdAt', descending: true) // Najnoviji prvi
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    return const Center(
+                      child: Text("Greška pri učitavanju podataka"),
+                    );
+                  }
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  // Pretvaramo dokumente iz Firebase-a u tvoje EventModel objekte
+                  final docs = snapshot.data!.docs;
+
+                  if (docs.isEmpty) {
+                    return const Center(
+                      child: Text("Trenutno nema dostupnih događaja."),
+                    );
+                  }
+
+                  return ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: docs.length,
+                    itemBuilder: (context, index) {
+                      final data = docs[index].data() as Map<String, dynamic>;
+
+                      // Kreiramo model iz podataka (bitno: prosleđujemo i ID dokumenta)
+                      final event = EventModel(
+                        id: docs[index].id,
+                        title: data['title'] ?? '',
+                        category: data['category'] ?? 'OSTALO',
+                        description: data['description'] ?? '',
+                        date: data['date'] ?? '',
+                        time: data['time'] ?? '',
+                        location: data['location'] ?? '',
+                        freeSpots: data['freeSpots'] ?? 0,
+                        spots: data['spots'] ?? 0,
+                        creatorId: data['creatorId'] ?? '',
+                      );
+
+                      return EventCard(event: event, isGuest: isGuest);
+                    },
+                  );
                 },
               ),
               const SizedBox(height: 20),
@@ -159,6 +110,7 @@ class EventsFeedScreen extends StatelessWidget {
     );
   }
 
+  // Tvoj postojeći _buildGuestBanner ostaje isti...
   Widget _buildGuestBanner(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -183,12 +135,10 @@ class EventsFeedScreen extends StatelessWidget {
             width: double.infinity,
             height: 48,
             child: ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => LoginScreen()),
-                );
-              },
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => LoginScreen()),
+              ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF2B8CBF),
                 shape: RoundedRectangleBorder(

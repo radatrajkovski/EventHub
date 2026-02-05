@@ -40,7 +40,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Feed'),
           BottomNavigationBarItem(icon: Icon(Icons.add_box), label: 'Kreiraj'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profil'),
-        ],
+        ],  
       ),
     );
   }
