@@ -1,10 +1,11 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:event_hub/models/event_card.dart';
 import 'package:event_hub/widgets/backHeader_widget.dart';
 import 'package:event_hub/widgets/customtTextField.dart';
 import 'package:event_hub/widgets/event_details_widget.dart';
-import 'package:event_hub/widgets/weather_widget.dart';
 import 'package:flutter/material.dart';
 
 class EventDetailsScreen extends StatefulWidget {
@@ -58,6 +59,20 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
     super.dispose();
   }
 
+  Future<Map<String, dynamic>> _fetchWeather(String location) async {
+    final city = location.split(',')[0].trim();
+    const apiKey = '85cf98e679a0b414f085731b6e492b43';
+    final url =
+        'https://api.openweathermap.org/data/2.5/weather?q=$city&appid=$apiKey&units=metric&lang=sr';
+
+    final response = await http.get(Uri.parse(url));
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Greška pri učitavanju vremena');
+    }
+  }
+
   // --- LOGIKA ZA PRIJAVU (Transaction) ---
   Future<void> _handleJoin() async {
     final user = FirebaseAuth.instance.currentUser;
@@ -91,10 +106,11 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
         );
       }
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(e.toString())));
+      }
     } finally {
       if (mounted) setState(() => _isJoining = false);
     }
@@ -162,7 +178,6 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                         _buildCategoryBadge(),
                         const SizedBox(height: 16),
 
-                        // PROSLEĐUJEMO INFO O KREATORU
                         widget.isEditing
                             ? _buildEditFields()
                             : _buildInfoDisplay(
@@ -172,7 +187,10 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                               ),
 
                         const SizedBox(height: 25),
-                        const WeatherWidget(),
+
+                        // --- WEATHER WIDGET INTEGRACIJA ---
+                        _buildWeatherSection(widget.event.location),
+
                         const SizedBox(height: 30),
                         const Text(
                           "O događaju",
@@ -185,7 +203,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                         _buildDescriptionSection(),
                         const SizedBox(height: 40),
 
-                        // DUGME (Sakriveno ili onemogućeno ako je admin)
+                        // DUGME ZA PRIJAVU
                         if (!isCreator)
                           ElevatedButton(
                             onPressed:
@@ -264,8 +282,60 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
     );
   }
 
-  // --- POMOĆNI WIDGETI ---
+  // --- POMOĆNI WIDGET ZA VREME ---
+  Widget _buildWeatherSection(String location) {
+    return FutureBuilder<Map<String, dynamic>>(
+      future: _fetchWeather(location),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const LinearProgressIndicator();
+        }
+        if (snapshot.hasError) {
+          return const Text(
+            "Prognoza nedostupna",
+            style: TextStyle(color: Colors.grey),
+          );
+        }
 
+        final temp = snapshot.data!['main']['temp'].round();
+        final desc = snapshot.data!['weather'][0]['description'];
+        final icon = snapshot.data!['weather'][0]['icon'];
+
+        return Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.blue.withOpacity(0.05),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.blue.withOpacity(0.1)),
+          ),
+          child: Row(
+            children: [
+              Image.network(
+                "https://openweathermap.org/img/wn/$icon@2x.png",
+                width: 45,
+              ),
+              const SizedBox(width: 10),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Trenutno: $temp°C",
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    desc[0].toUpperCase() + desc.substring(1),
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // --- OSTALI POMOĆNI WIDGETI ---
   Widget _buildCategoryBadge() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
@@ -281,8 +351,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
   }
 
   Widget _buildInfoDisplay(EventModel event, int free, bool isCreator) {
-    int taken = event.spots - free; // Broj prijavljenih ljudi
-
+    int taken = event.spots - free;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -306,8 +375,6 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
           label: "Lokacija",
           value: event.location,
         ),
-
-        // AKO JE KREATOR (ADMIN) VIDI POPUNJENOST, AKO JE GOST VIDI SLOBODNA MESTA
         isCreator
             ? EventInfoTile(
                 icon: Icons.analytics_outlined,

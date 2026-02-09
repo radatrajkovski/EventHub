@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:event_hub/models/event_card.dart'; // Proveri da li se fajl zove event_card.dart ili event_model.dart
+import 'package:event_hub/models/event_card.dart';
 import 'package:event_hub/widgets/event_card.dart';
 import 'welcome_screen.dart';
 
@@ -25,7 +25,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final TextEditingController _nameController = TextEditingController();
   bool _isEditing = false;
 
-  // Funkcija za biranje slike
   Future<void> _pickImage() async {
     try {
       final XFile? pickedFile = await _picker.pickImage(
@@ -51,34 +50,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
-            // 1. TOP BAR (Logo i Logout)
             _buildTopBar(),
             const SizedBox(height: 20),
-
-            // 2. PROFIL HEADER (StreamBuilder za ime i sliku)
             _buildProfileHeader(currentUser),
             const SizedBox(height: 30),
 
-            // 3. SEKCIJA: MOJI DOGAĐAJI (StreamBuilder za kreirane događaje)
+            
             _buildSectionTitle("Moji događaji", showAdd: true),
             const SizedBox(height: 15),
             _buildMyEventsStream(currentUser),
 
             const SizedBox(height: 35),
 
-            // 4. SEKCIJA: PRISUSTVUJEM (Statički placeholder za sada)
+           
             _buildSectionTitle("Događaji kojima prisustvujem", showAdd: false),
             const SizedBox(height: 15),
-            _buildEmptyState(
-              "Lista događaja na koje ste se prijavili će se pojaviti ovde.",
-            ),
+            _buildAttendingEventsStream(currentUser),
+            const SizedBox(height: 20),
           ],
         ),
       ),
     );
   }
 
-  // --- WIDGET METODE ---
 
   Widget _buildTopBar() {
     return Row(
@@ -88,7 +82,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         Image.asset(
           'assets/logo2.png',
           height: 40,
-          errorBuilder: (c, e, s) => const Icon(Icons.event),
+          errorBuilder: (c, e, s) =>
+              const Icon(Icons.event, color: Color(0xFF2B8CBF)),
         ),
         IconButton(
           icon: const Icon(Icons.logout, color: Colors.grey),
@@ -118,8 +113,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           .doc(currentUser.uid)
           .snapshots(),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting)
+        if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
+        }
 
         String name = "Korisnik";
         String surname = "";
@@ -210,6 +206,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+
   Widget _buildMyEventsStream(User? user) {
     if (user == null) return const SizedBox();
 
@@ -236,18 +233,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 onPageChanged: (page) => setState(() => _currentPage = page),
                 itemBuilder: (context, index) {
                   final data = docs[index].data() as Map<String, dynamic>;
-                  final event = EventModel(
-                    id: docs[index].id,
-                    title: data['title'] ?? '',
-                    category: data['category'] ?? '',
-                    description: data['description'] ?? '',
-                    date: data['date'] ?? '',
-                    time: data['time'] ?? '',
-                    location: data['location'] ?? '',
-                    freeSpots: data['freeSpots'] ?? 0,
-                    spots: data['spots'] ?? 0,
-                    creatorId: data['creatorId'] ?? '',
-                  );
+                  final event = _mapDocToModel(docs[index].id, data);
                   return Padding(
                     padding: const EdgeInsets.only(right: 15),
                     child: EventCard(
@@ -264,6 +250,59 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ],
         );
       },
+    );
+  }
+
+
+  Widget _buildAttendingEventsStream(User? user) {
+    if (user == null) return const SizedBox();
+
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('events')
+          .where('participants', arrayContains: user.uid)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return _buildEmptyState("Niste se prijavili ni na jedan događaj.");
+        }
+
+        final docs = snapshot.data!.docs;
+
+        return ListView.separated(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: docs.length,
+          separatorBuilder: (c, i) => const SizedBox(height: 15),
+          itemBuilder: (context, index) {
+            final data = docs[index].data() as Map<String, dynamic>;
+            final event = _mapDocToModel(docs[index].id, data);
+            return EventCard(
+              event: event,
+              isGuest: widget.isGuest,
+              isAdmin: false,
+            );
+          },
+        );
+      },
+    );
+  }
+
+  EventModel _mapDocToModel(String id, Map<String, dynamic> data) {
+    return EventModel(
+      id: id,
+      title: data['title'] ?? '',
+      category: data['category'] ?? '',
+      description: data['description'] ?? '',
+      date: data['date'] ?? '',
+      time: data['time'] ?? '',
+      location: data['location'] ?? '',
+      freeSpots: data['freeSpots'] ?? 0,
+      spots: data['spots'] ?? 0,
+      creatorId: data['creatorId'] ?? '',
     );
   }
 

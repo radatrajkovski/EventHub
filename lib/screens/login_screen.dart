@@ -1,5 +1,4 @@
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';import 'package:firebase_auth/firebase_auth.dart';
 import 'package:event_hub/screens/main_screen.dart';
 import 'package:event_hub/widgets/backHeader_widget.dart';
 import 'package:event_hub/widgets/customtTextField.dart';
@@ -44,7 +43,7 @@ class _LoginScreenState extends State<LoginScreen> {
         password: password,
       );
 
-      // Ako je uspesno, idi na MainNavigationScreen
+    
       if (mounted) {
         Navigator.pushAndRemoveUntil(
           context,
@@ -78,7 +77,6 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // Pozadinska slika
           Container(
             width: double.infinity,
             height: double.infinity,
