@@ -16,7 +16,6 @@ class EventCard extends StatelessWidget {
     this.onTap,
   });
 
-
   void _showDeleteDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -73,7 +72,6 @@ class EventCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-           
             Expanded(
               child: Container(
                 padding: const EdgeInsets.all(16),
@@ -107,7 +105,7 @@ class EventCard extends StatelessWidget {
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: event.getCategoryColor(event.category),
+                            color: event.categoryColor,
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
@@ -164,7 +162,6 @@ class EventCard extends StatelessWidget {
               ),
             ),
 
-         
             if (isAdmin)
               Padding(
                 padding: const EdgeInsets.only(left: 8),

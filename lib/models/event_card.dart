@@ -10,7 +10,8 @@ class EventModel {
   final String location;
   final int freeSpots;
   final int spots;
-  final String creatorId; // UID korisnika koji je kreirao
+  final String creatorId;
+  final Color categoryColor; // DODAJ OVO POLJE
 
   EventModel({
     required this.id,
@@ -23,13 +24,19 @@ class EventModel {
     required this.freeSpots,
     required this.spots,
     required this.creatorId,
+    required this.categoryColor, // DODAJ OVO U KONSTRUKTOR
   });
 
-  // Metoda koja pretvara podatke iz baze u tvoj model
   factory EventModel.fromFirestore(
     Map<String, dynamic> data,
     String documentId,
   ) {
+    // Funkcija koja pretvara String iz baze u boju
+    Color parseColor(String? hexString) {
+      if (hexString == null) return const Color(0xFFF5F5F5);
+      return Color(int.parse(hexString));
+    }
+
     return EventModel(
       id: documentId,
       title: data['title'] ?? '',
@@ -41,15 +48,7 @@ class EventModel {
       freeSpots: data['freeSpots'] ?? 0,
       spots: data['spots'] ?? 0,
       creatorId: data['creatorId'] ?? '',
+      categoryColor: parseColor(data['categoryColor']), // Uzimamo boju iz baze
     );
-  }
-
-  Color getCategoryColor(String category) {
-    final cat = category.toUpperCase();
-    if (cat.contains('TEH')) return const Color(0xFFE3F2FD);
-    if (cat.contains('MUZ')) return const Color(0xFFF3E5F5);
-    if (cat.contains('SPO')) return const Color(0xFFFFF3E0);
-    if (cat.contains('EDU')) return const Color(0xFFE8F5E9);
-    return const Color(0xFFF5F5F5);
   }
 }

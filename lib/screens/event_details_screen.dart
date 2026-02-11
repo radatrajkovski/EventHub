@@ -73,7 +73,6 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
     }
   }
 
-  // --- LOGIKA ZA PRIJAVU (Transaction) ---
   Future<void> _handleJoin() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
@@ -187,10 +186,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                               ),
 
                         const SizedBox(height: 25),
-
-                        // --- WEATHER WIDGET INTEGRACIJA ---
                         _buildWeatherSection(widget.event.location),
-
                         const SizedBox(height: 30),
                         const Text(
                           "O događaju",
@@ -203,7 +199,6 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                         _buildDescriptionSection(),
                         const SizedBox(height: 40),
 
-                        // DUGME ZA PRIJAVU
                         if (!isCreator)
                           ElevatedButton(
                             onPressed:
@@ -224,8 +219,13 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                               ),
                             ),
                             child: _isJoining
-                                ? const CircularProgressIndicator(
-                                    color: Colors.white,
+                                ? const SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
                                   )
                                 : Text(
                                     isAlreadyJoined
@@ -282,7 +282,6 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
     );
   }
 
-  // --- POMOĆNI WIDGET ZA VREME ---
   Widget _buildWeatherSection(String location) {
     return FutureBuilder<Map<String, dynamic>>(
       future: _fetchWeather(location),
@@ -335,17 +334,21 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
     );
   }
 
-  // --- OSTALI POMOĆNI WIDGETI ---
   Widget _buildCategoryBadge() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: widget.event.getCategoryColor(widget.event.category),
+        color: widget.event.categoryColor.withOpacity(0.15),
         borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: widget.event.categoryColor, width: 1),
       ),
       child: Text(
         widget.event.category.toUpperCase(),
-        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+          color: widget.event.categoryColor,
+        ),
       ),
     );
   }

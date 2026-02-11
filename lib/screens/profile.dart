@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:event_hub/models/event_card.dart';
+import 'package:event_hub/models/event_card.dart'; // Proveri da li se ovde nalazi EventModel
 import 'package:event_hub/widgets/event_card.dart';
 import 'welcome_screen.dart';
 
@@ -24,6 +24,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final ImagePicker _picker = ImagePicker();
   final TextEditingController _nameController = TextEditingController();
   bool _isEditing = false;
+
+  // POMOĆNA FUNKCIJA ZA PARSIRANJE BOJE
+  Color _parseColor(String? hexString) {
+    try {
+      if (hexString == null || hexString.isEmpty)
+        return const Color(0xFF2B8CBF);
+      return Color(int.parse(hexString));
+    } catch (e) {
+      return const Color(0xFF2B8CBF);
+    }
+  }
+
+  // MAPIRANJE IZ BAZE U MODEL (Samo jedna čista verzija)
+  EventModel _mapDocToModel(String id, Map<String, dynamic> data) {
+    return EventModel(
+      id: id,
+      title: data['title'] ?? '',
+      category: data['category'] ?? '',
+      description: data['description'] ?? '',
+      date: data['date'] ?? '',
+      time: data['time'] ?? '',
+      location: data['location'] ?? '',
+      freeSpots: data['freeSpots'] ?? 0,
+      spots: data['spots'] ?? 0,
+      creatorId: data['creatorId'] ?? '',
+      categoryColor: _parseColor(data['categoryColor']), // Dodato polje
+    );
+  }
 
   Future<void> _pickImage() async {
     try {
@@ -54,15 +82,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 20),
             _buildProfileHeader(currentUser),
             const SizedBox(height: 30),
-
-            
             _buildSectionTitle("Moji događaji", showAdd: true),
             const SizedBox(height: 15),
             _buildMyEventsStream(currentUser),
-
             const SizedBox(height: 35),
-
-           
             _buildSectionTitle("Događaji kojima prisustvujem", showAdd: false),
             const SizedBox(height: 15),
             _buildAttendingEventsStream(currentUser),
@@ -72,7 +95,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
     );
   }
-
 
   Widget _buildTopBar() {
     return Row(
@@ -206,7 +228,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-
   Widget _buildMyEventsStream(User? user) {
     if (user == null) return const SizedBox();
 
@@ -219,7 +240,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         if (!snapshot.hasData)
           return const Center(child: CircularProgressIndicator());
         final docs = snapshot.data!.docs;
-
         if (docs.isEmpty)
           return _buildEmptyState("Niste kreirali nijedan događaj.");
 
@@ -253,7 +273,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-
   Widget _buildAttendingEventsStream(User? user) {
     if (user == null) return const SizedBox();
 
@@ -269,7 +288,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
           return _buildEmptyState("Niste se prijavili ni na jedan događaj.");
         }
-
         final docs = snapshot.data!.docs;
 
         return ListView.separated(
@@ -288,21 +306,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           },
         );
       },
-    );
-  }
-
-  EventModel _mapDocToModel(String id, Map<String, dynamic> data) {
-    return EventModel(
-      id: id,
-      title: data['title'] ?? '',
-      category: data['category'] ?? '',
-      description: data['description'] ?? '',
-      date: data['date'] ?? '',
-      time: data['time'] ?? '',
-      location: data['location'] ?? '',
-      freeSpots: data['freeSpots'] ?? 0,
-      spots: data['spots'] ?? 0,
-      creatorId: data['creatorId'] ?? '',
     );
   }
 

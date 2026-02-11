@@ -95,6 +95,9 @@ class EventsFeedScreen extends StatelessWidget {
                         freeSpots: data['freeSpots'] ?? 0,
                         spots: data['spots'] ?? 0,
                         creatorId: data['creatorId'] ?? '',
+                        categoryColor: data['categoryColor'] != null
+                            ? Color(int.parse(data['categoryColor']))
+                            : const Color(0xFFF5F5F5), // Default boja
                       );
 
                       return EventCard(event: event, isGuest: isGuest);
