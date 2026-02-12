@@ -82,6 +82,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
       throw Exception('Problem sa konekcijom');
     }
   }
+
   Future<void> _handleJoin() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
@@ -147,9 +148,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
   }
 
   Future<void> _updateEvent() async {
-    setState(
-      () => _isJoining = true,
-    );
+    setState(() => _isJoining = true);
     try {
       int zauzetaMesta = widget.event.spots - widget.event.freeSpots;
       int noviUkupniBroj =
@@ -162,13 +161,11 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
           .update({
             'title': _titleController.text,
             'location': _locationController.text,
-            'date': _dateController.text, 
+            'date': _dateController.text,
             'time': _timeController.text,
             'description': _descriptionController.text,
             'spots': noviUkupniBroj,
-            'freeSpots': novaSlobodnaMesta < 0
-                ? 0
-                : novaSlobodnaMesta, 
+            'freeSpots': novaSlobodnaMesta < 0 ? 0 : novaSlobodnaMesta,
           });
 
       _showSuccessDialog();
@@ -186,8 +183,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
     final User? user = FirebaseAuth.instance.currentUser;
 
     final bool actualIsGuest = widget.isGuest || user == null;
-    final bool isCreator =
-        !actualIsGuest && user?.uid == widget.event.creatorId;
+    final bool isCreator = !actualIsGuest && user.uid == widget.event.creatorId;
     final String currentUserId = FirebaseAuth.instance.currentUser?.uid ?? "";
 
     return StreamBuilder<DocumentSnapshot>(

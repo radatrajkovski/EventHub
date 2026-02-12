@@ -130,14 +130,15 @@ class _EventsFeedScreenState extends State<EventsFeedScreen> {
                           .orderBy('createdAt', descending: true)
                           .snapshots(),
                       builder: (context, snapshot) {
-                        if (snapshot.hasError)
+                        if (snapshot.hasError) {
                           return const Center(child: Text("Greška!"));
-                        if (!snapshot.hasData)
+                        }
+                        if (!snapshot.hasData) {
                           return const Center(
                             child: CircularProgressIndicator(),
                           );
+                        }
 
-                        // FILTRIRANJE LISTE NA OSNOVU PRETRAGE
                         final allDocs = snapshot.data!.docs;
                         final filteredDocs = allDocs.where((doc) {
                           final title = doc['title'].toString().toLowerCase();

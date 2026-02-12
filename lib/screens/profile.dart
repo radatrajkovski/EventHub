@@ -18,7 +18,7 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final PageController _pageController = PageController();
-  int _currentPage = 0;
+  final int _currentPage = 0;
   final ValueNotifier<int> _pageNotifier = ValueNotifier<int>(0);
   File? _image;
   final ImagePicker _picker = ImagePicker();
@@ -228,6 +228,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  @override
   void initState() {
     super.initState();
     final user = FirebaseAuth.instance.currentUser;

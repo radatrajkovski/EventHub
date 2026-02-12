@@ -25,7 +25,6 @@ class EventCard extends StatelessWidget {
       final parts = location.split(',');
       final city = parts.length > 1 ? parts.last.trim() : parts.first.trim();
 
-      // VAŽNO: Koristi Uri.encodeComponent u slučaju da grad ima razmak (npr. "Novi Sad")
       final encodedCity = Uri.encodeComponent(city);
       const apiKey = 'e67ca10c5442e532eb31621f7ae5aee1';
       final url =
@@ -257,7 +256,7 @@ class EventCard extends StatelessWidget {
                       icon: const Icon(
                         Icons.delete_outline,
                         size: 22,
-                        color: Colors.black54, 
+                        color: Colors.black54,
                       ),
                     ),
                   ],
@@ -295,7 +294,7 @@ class EventCard extends StatelessWidget {
             ],
           );
         }
-        return const SizedBox(height: 14); 
+        return const SizedBox(height: 14);
       },
     );
   }
