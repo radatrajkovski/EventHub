@@ -1,4 +1,4 @@
-import 'package:firebase_core/firebase_core.dart';import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:event_hub/screens/main_screen.dart';
 import 'package:event_hub/widgets/backHeader_widget.dart';
 import 'package:event_hub/widgets/customtTextField.dart';
@@ -20,30 +20,25 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
 
-  // Glavna funkcija za login
   Future<void> _handleLogin() async {
     String email = emailController.text.trim();
     String password = passwordController.text.trim();
-
     if (email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Molimo unesite email i lozinku")),
       );
       return;
     }
-
     setState(() {
       _isLoading = true;
     });
 
     try {
-      // Firebase provera
       await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
 
-    
       if (mounted) {
         Navigator.pushAndRemoveUntil(
           context,
@@ -57,9 +52,9 @@ class _LoginScreenState extends State<LoginScreen> {
       String message = "Došlo je do greške";
       if (e.code == 'user-not-found') message = "Korisnik nije pronađen.";
       if (e.code == 'wrong-password') message = "Pogrešna lozinka.";
-      if (e.code == 'invalid-email')
+      if (e.code == 'invalid-email') {
         message = "Format email adrese nije ispravan.";
-
+      }
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(message)));
@@ -135,7 +130,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         const SizedBox(height: 24),
 
-                      
                         _isLoading
                             ? const CircularProgressIndicator()
                             : PrimaryButton(

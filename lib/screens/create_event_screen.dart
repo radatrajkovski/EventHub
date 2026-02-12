@@ -7,12 +7,11 @@ import 'package:event_hub/widgets/customtTextField.dart';
 class CreateEventScreen extends StatefulWidget {
   const CreateEventScreen({super.key});
 
-  @override
+  @override 
   State<CreateEventScreen> createState() => _CreateEventScreenState();
 }
 
 class _CreateEventScreenState extends State<CreateEventScreen> {
-  // Kontroleri za tekstualna polja
   final TextEditingController nameController = TextEditingController();
   final TextEditingController locationController = TextEditingController();
   final TextEditingController dateController = TextEditingController();
@@ -20,12 +19,10 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   final TextEditingController descController = TextEditingController();
   final TextEditingController spotsController = TextEditingController();
 
-  // Promenljive za kategoriju (VAŽNO: selectedCategory mora biti null na početku da bi hint radio)
   String? selectedCategory;
   String? selectedCategoryColor;
   bool _isLoading = false;
 
-  // FUNKCIJA ZA SNIMANJE U BAZU
   Future<void> _handleCreateEvent() async {
     if (nameController.text.isEmpty || selectedCategory == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -33,29 +30,22 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       );
       return;
     }
-
     setState(() => _isLoading = true);
-
     try {
       final String uid = FirebaseAuth.instance.currentUser?.uid ?? "";
-
-      // Automatsko kreiranje kolekcije 'events' i upis dokumenta
       await FirebaseFirestore.instance.collection('events').add({
         'title': nameController.text.trim(),
         'description': descController.text.trim(),
         'location': locationController.text.trim(),
         'date': dateController.text.trim(),
         'time': timeController.text.trim(),
-        'category': selectedCategory, // Ime (npr. MUZIKA)
-        'categoryColor':
-            selectedCategoryColor ?? "0xFF2B8CBF", // Boja iz kategorije
+        'category': selectedCategory,
         'spots': int.tryParse(spotsController.text) ?? 0,
         'freeSpots': int.tryParse(spotsController.text) ?? 0,
         'creatorId': uid,
-        'participants': [], // Prazna lista za početak
+        'participants': [],
         'createdAt': FieldValue.serverTimestamp(),
       });
-
       _showSuccessPopup();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -66,10 +56,9 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     }
   }
 
-  // WIDGET ZA DROPDOWN KOJI RADI SA HINTOM
   Widget _buildDropdown() {
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance.collection('categories').snapshots(),
+    return FutureBuilder<QuerySnapshot>(
+      future: FirebaseFirestore.instance.collection('categories').get(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return const Center(child: LinearProgressIndicator());
@@ -97,7 +86,6 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
 
                 return DropdownMenuItem<String>(
                   value: name,
-                  // onTap se dešava pre onChanged - idealno da "uhvatimo" boju
                   onTap: () {
                     selectedCategoryColor = color;
                   },
@@ -239,11 +227,11 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       barrierDismissible: false,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text("USPEH! 🎉", textAlign: TextAlign.center),
+        title: const Text("JEJ! 🎉", textAlign: TextAlign.center),
         content: const Text("Vaš događaj je sada javan i vidljiv svima."),
         actions: [
           Center(
-            child: TextButton(
+            child: TextButton(  
               onPressed: () => Navigator.of(context).pushAndRemoveUntil(
                 MaterialPageRoute(
                   builder: (context) =>

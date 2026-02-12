@@ -24,23 +24,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
 
-  // GLAVNA FUNKCIJA ZA REGISTRACIJU
   void _handleRegister() async {
-    // 1. Validacija polja
+
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
 
     try {
-      // 2. Kreiranje korisnika u Firebase Authentication
       UserCredential userCredential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
       );
-
-      // 3. Upisivanje dodatnih podataka (ime i prezime) u Firestore
-      // Koristimo isti UID koji je Firebase Auth dodelio korisniku
       await FirebaseFirestore.instance
           .collection('users')
           .doc(userCredential.user!.uid)
@@ -50,8 +45,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
         'email': emailController.text.trim(),
         'uid': userCredential.user!.uid,
       });
-
-      // 4. Ako je sve prošlo ok, šaljemo ga na glavni ekran
       if (mounted) {
         Navigator.pushAndRemoveUntil(
           context,
@@ -62,16 +55,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
         );
       }
     } on FirebaseAuthException catch (e) {
-      // Rukovanje greškama (npr. slab password, email već postoji)
       String message = "Došlo je do greške";
       if (e.code == 'weak-password') message = "Lozinka je previše slaba.";
       if (e.code == 'email-already-in-use') message = "Nalog sa ovim email-om već postoji.";
-
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(message)),
       );
     } catch (e) {
-      print(e);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }

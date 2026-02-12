@@ -27,20 +27,24 @@ class EventDetailsScreen extends StatefulWidget {
 class _EventDetailsScreenState extends State<EventDetailsScreen> {
   late TextEditingController _titleController;
   late TextEditingController _locationController;
-  late TextEditingController _dateTimeController;
+  late TextEditingController _dateController;
+  late TextEditingController _timeController;
   late TextEditingController _spotsController;
   late TextEditingController _descriptionController;
-
+  bool _isLoadingCategories = true;
+  List<String> _categoryNames = [];
+  String? _selectedCategory;
+  Map<String, Color> _categoryColorMap = {};
   bool _isJoining = false;
 
   @override
   void initState() {
     super.initState();
+    _fetchCategories();
     _titleController = TextEditingController(text: widget.event.title);
     _locationController = TextEditingController(text: widget.event.location);
-    _dateTimeController = TextEditingController(
-      text: "${widget.event.date} ${widget.event.time}",
-    );
+    _dateController = TextEditingController(text: widget.event.date);
+    _timeController = TextEditingController(text: widget.event.time);
     _spotsController = TextEditingController(
       text: widget.event.spots.toString(),
     );
@@ -53,23 +57,38 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
   void dispose() {
     _titleController.dispose();
     _locationController.dispose();
-    _dateTimeController.dispose();
+    _dateController.dispose();
+    _timeController.dispose();
     _spotsController.dispose();
     _descriptionController.dispose();
     super.dispose();
   }
 
   Future<Map<String, dynamic>> _fetchWeather(String location) async {
-    final city = location.split(',')[0].trim();
-    const apiKey = '85cf98e679a0b414f085731b6e492b43';
-    final url =
-        'https://api.openweathermap.org/data/2.5/weather?q=$city&appid=$apiKey&units=metric&lang=sr';
+    try {
+      // Logika: Ako ima zareza (npr. "Ulica, Grad"), uzmi poslednji deo (Grad).
+      // Ako nema, uzmi celu reč.
+      final parts = location.split(',');
+      final city = parts.length > 1 ? parts.last.trim() : parts.first.trim();
 
-    final response = await http.get(Uri.parse(url));
-    if (response.statusCode == 200) {
-      return json.decode(response.body);
-    } else {
-      throw Exception('Greška pri učitavanju vremena');
+      // VAŽNO: Koristi Uri.encodeComponent u slučaju da grad ima razmak (npr. "Novi Sad")
+      final encodedCity = Uri.encodeComponent(city);
+      const apiKey = 'e67ca10c5442e532eb31621f7ae5aee1';
+      final url =
+          'https://api.openweathermap.org/data/2.5/weather?q=$encodedCity&appid=$apiKey&units=metric';
+
+      final response = await http.get(Uri.parse(url));
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        // Ako grad nije pronađen, baci specifičnu grešku za debug
+        print("Vremenska greška: ${response.statusCode} za grad: $city");
+        throw Exception('Grad nije pronađen');
+      }
+    } catch (e) {
+      print("Greška u mrežnom pozivu: $e");
+      throw Exception('Problem sa konekcijom');
     }
   }
 
@@ -139,10 +158,51 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
     );
   }
 
+  Future<void> _updateEvent() async {
+    setState(
+      () => _isJoining = true,
+    ); // Koristimo isti loader radi jednostavnosti
+    try {
+      // Prvo izračunamo koliko ima slobodnih mesta nakon promene ukupnog broja
+      // (Stari ukupni broj - Stara slobodna mesta = Broj zauzetih mesta)
+      int zauzetaMesta = widget.event.spots - widget.event.freeSpots;
+      int noviUkupniBroj =
+          int.tryParse(_spotsController.text) ?? widget.event.spots;
+      int novaSlobodnaMesta = noviUkupniBroj - zauzetaMesta;
+
+      await FirebaseFirestore.instance
+          .collection('events')
+          .doc(widget.event.id)
+          .update({
+            'title': _titleController.text,
+            'location': _locationController.text,
+            'date': _dateController.text, // OVO JE ONO ŠTO JE FALILO
+            'time': _timeController.text, // OVO JE ONO ŠTO JE FALILO
+            'description': _descriptionController.text,
+            'spots': noviUkupniBroj,
+            'freeSpots': novaSlobodnaMesta < 0
+                ? 0
+                : novaSlobodnaMesta, // Ne sme biti negativno
+          });
+
+      _showSuccessDialog();
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Greška pri čuvanju: $e")));
+    } finally {
+      if (mounted) setState(() => _isJoining = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final User? user = FirebaseAuth.instance.currentUser;
+
+    final bool actualIsGuest = widget.isGuest || user == null;
+    final bool isCreator =
+        !actualIsGuest && user?.uid == widget.event.creatorId;
     final String currentUserId = FirebaseAuth.instance.currentUser?.uid ?? "";
-    final bool isCreator = widget.event.creatorId == currentUserId;
 
     return StreamBuilder<DocumentSnapshot>(
       stream: FirebaseFirestore.instance
@@ -211,7 +271,9 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: isAlreadyJoined
                                   ? Colors.green
-                                  : const Color(0xFF2B8CBF),
+                                  : (widget.isGuest || isFull
+                                        ? Colors.grey.shade400
+                                        : const Color(0xFF2B8CBF)),
                               disabledBackgroundColor: Colors.grey.shade300,
                               minimumSize: const Size(double.infinity, 56),
                               shape: RoundedRectangleBorder(
@@ -228,11 +290,13 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                                     ),
                                   )
                                 : Text(
-                                    isAlreadyJoined
-                                        ? "PRIJAVLJENI STE"
-                                        : (isFull
-                                              ? "POPUNJENO"
-                                              : "PRIDRUŽI SE DOGAĐAJU"),
+                                    widget.isGuest
+                                        ? "PRIJAVITE SE ZA UČEŠĆE"
+                                        : (isAlreadyJoined
+                                              ? "PRIJAVLJENI STE"
+                                              : (isFull
+                                                    ? "POPUNJENO"
+                                                    : "PRIDRUŽI SE DOGAĐAJU")),
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontWeight: FontWeight.bold,
@@ -253,7 +317,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
 
                         if (widget.isEditing)
                           ElevatedButton(
-                            onPressed: _showSuccessDialog,
+                            onPressed: _updateEvent,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF2B8CBF),
                               minimumSize: const Size(double.infinity, 56),
@@ -290,10 +354,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
           return const LinearProgressIndicator();
         }
         if (snapshot.hasError) {
-          return const Text(
-            "Prognoza nedostupna",
-            style: TextStyle(color: Colors.grey),
-          );
+          return Text("Greška: ${snapshot.error}");
         }
 
         final temp = snapshot.data!['main']['temp'].round();
@@ -335,21 +396,45 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
   }
 
   Widget _buildCategoryBadge() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: widget.event.categoryColor.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: widget.event.categoryColor, width: 1),
-      ),
-      child: Text(
-        widget.event.category.toUpperCase(),
-        style: TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.bold,
-          color: widget.event.categoryColor,
-        ),
-      ),
+    return FutureBuilder<QuerySnapshot>(
+      future: FirebaseFirestore.instance
+          .collection('categories')
+          .where('name', isEqualTo: widget.event.category)
+          .limit(1)
+          .get(),
+      builder: (context, snapshot) {
+        Color categoryColor = Colors.grey;
+
+        if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
+          var data = snapshot.data!.docs.first.data() as Map<String, dynamic>;
+          String hexColor = data['color'] ?? "0xFF2B8CBF";
+
+          try {
+            categoryColor = Color(
+              int.parse(hexColor.replaceAll('0x', ''), radix: 16),
+            );
+          } catch (e) {
+            categoryColor = const Color(0xFF2B8CBF);
+          }
+        }
+
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          decoration: BoxDecoration(
+            color: categoryColor.withOpacity(0.15),
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: categoryColor, width: 1),
+          ),
+          child: Text(
+            widget.event.category.toUpperCase(),
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+              color: categoryColor,
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -430,8 +515,54 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
           hintText: "Broj mesta",
           controller: _spotsController,
         ),
+        const SizedBox(height: 16),
+        _editLabel("Datum"),
+        CustomTextField(
+          width: double.infinity,
+          hintText: "Datum",
+          controller: _dateController,
+        ),
+        const SizedBox(height: 16),
+        _editLabel("Vreme"),
+        CustomTextField(
+          width: double.infinity,
+          hintText: "Vreme",
+          controller: _timeController,
+        ),
       ],
     );
+  }
+
+  Future<void> _fetchCategories() async {
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('categories')
+          .get();
+
+      Map<String, Color> tempColors = {};
+      List<String> tempNames = [];
+
+      for (var doc in snapshot.docs) {
+        final name = doc['name'] as String;
+        tempNames.add(name);
+
+        String hexColor = doc.data().containsKey('color')
+            ? doc['color']
+            : "0xFF2B8CBF";
+        tempColors[name] = _parseColor(hexColor);
+      }
+
+      if (mounted) {
+        setState(() {
+          _categoryNames = tempNames;
+          _categoryColorMap = tempColors;
+          _isLoadingCategories = false;
+        });
+      }
+    } catch (e) {
+      debugPrint("Greška pri učitavanju: $e");
+      if (mounted) setState(() => _isLoadingCategories = false);
+    }
   }
 
   Widget _editLabel(String text) => Padding(
@@ -448,4 +579,21 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
       ),
     ),
   );
+}
+
+Color _parseColor(String hexString) {
+  try {
+    String cleanedHex = hexString
+        .replaceAll('0x', '')
+        .replaceAll('#', '')
+        .trim();
+
+    if (cleanedHex.length == 6) {
+      cleanedHex = 'FF$cleanedHex';
+    }
+
+    return Color(int.parse(cleanedHex, radix: 16));
+  } catch (e) {
+    return const Color(0xFF2B8CBF);
+  }
 }

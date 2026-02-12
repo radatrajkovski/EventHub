@@ -1,7 +1,16 @@
 import 'package:flutter/material.dart';
 
 class WeatherWidget extends StatelessWidget {
-  const WeatherWidget({super.key});
+  final int temp;
+  final String description;
+  final String iconCode;
+
+  const WeatherWidget({
+    super.key,
+    required this.temp,
+    required this.description,
+    required this.iconCode,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -14,17 +23,17 @@ class WeatherWidget extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Column(
+          Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
+              const Text(
                 "Vremenska prognoza",
                 style: TextStyle(fontSize: 12, color: Color(0xFF2B8CBF)),
               ),
-              SizedBox(height: 4),
+              const SizedBox(height: 4),
               Text(
-                "Delimično oblačno",
-                style: TextStyle(
+                description[0].toUpperCase() + description.substring(1),
+                style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF2B8CBF),
                 ),
@@ -33,11 +42,14 @@ class WeatherWidget extends StatelessWidget {
           ),
           Row(
             children: [
-              const Icon(Icons.cloud_queue, color: Color(0xFF2B8CBF), size: 28),
+              Image.network(
+                "https://openweathermap.org/img/wn/$iconCode@2x.png",
+                width: 40,
+              ),
               const SizedBox(width: 8),
-              const Text(
-                "22°C",
-                style: TextStyle(
+              Text(
+                "$temp°C",
+                style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF2B8CBF),

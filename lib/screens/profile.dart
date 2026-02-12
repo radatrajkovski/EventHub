@@ -19,24 +19,26 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
-
+  final ValueNotifier<int> _pageNotifier = ValueNotifier<int>(0);
   File? _image;
   final ImagePicker _picker = ImagePicker();
   final TextEditingController _nameController = TextEditingController();
   bool _isEditing = false;
+  late Stream<QuerySnapshot> _myEventsStream;
+  late Stream<QuerySnapshot> _attendingEventsStream;
 
-  // POMOĆNA FUNKCIJA ZA PARSIRANJE BOJE
   Color _parseColor(String? hexString) {
     try {
-      if (hexString == null || hexString.isEmpty)
+      if (hexString == null || hexString.isEmpty) {
         return const Color(0xFF2B8CBF);
+      }
       return Color(int.parse(hexString));
     } catch (e) {
       return const Color(0xFF2B8CBF);
     }
   }
 
-  // MAPIRANJE IZ BAZE U MODEL (Samo jedna čista verzija)
+  
   EventModel _mapDocToModel(String id, Map<String, dynamic> data) {
     return EventModel(
       id: id,
@@ -49,7 +51,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       freeSpots: data['freeSpots'] ?? 0,
       spots: data['spots'] ?? 0,
       creatorId: data['creatorId'] ?? '',
-      categoryColor: _parseColor(data['categoryColor']), // Dodato polje
     );
   }
 
@@ -228,20 +229,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  void initState() {
+    super.initState();
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      // Stream-ove inicijalizujemo SAMO JEDNOM ovde
+      _myEventsStream = FirebaseFirestore.instance
+          .collection('events')
+          .where('creatorId', isEqualTo: user.uid)
+          .snapshots();
+
+      _attendingEventsStream = FirebaseFirestore.instance
+          .collection('events')
+          .where('participants', arrayContains: user.uid)
+          .snapshots();
+    }
+  }
+
   Widget _buildMyEventsStream(User? user) {
     if (user == null) return const SizedBox();
 
     return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('events')
-          .where('creatorId', isEqualTo: user.uid)
-          .snapshots(),
+      stream: _myEventsStream,
       builder: (context, snapshot) {
-        if (!snapshot.hasData)
+        if (!snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
+        }
         final docs = snapshot.data!.docs;
-        if (docs.isEmpty)
+        if (docs.isEmpty) {
           return _buildEmptyState("Niste kreirali nijedan događaj.");
+        }
 
         return Column(
           children: [
@@ -250,7 +267,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: PageView.builder(
                 controller: _pageController,
                 itemCount: docs.length,
-                onPageChanged: (page) => setState(() => _currentPage = page),
+                onPageChanged: (page) => _pageNotifier.value = page,
                 itemBuilder: (context, index) {
                   final data = docs[index].data() as Map<String, dynamic>;
                   final event = _mapDocToModel(docs[index].id, data);
@@ -266,7 +283,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
             const SizedBox(height: 10),
-            _buildPageIndicator(docs.length),
+            ValueListenableBuilder<int>(
+              valueListenable: _pageNotifier,
+              builder: (context, value, child) {
+                return _buildPageIndicator(
+                  docs.length,
+                  value,
+                ); // Prosledi 'value' umesto _currentPage
+              },
+            ),
           ],
         );
       },
@@ -277,10 +302,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (user == null) return const SizedBox();
 
     return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('events')
-          .where('participants', arrayContains: user.uid)
-          .snapshots(),
+      stream: _attendingEventsStream,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -334,18 +356,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildPageIndicator(int count) {
+  Widget _buildPageIndicator(int count, int currentPage) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(
         count,
         (index) => Container(
           margin: const EdgeInsets.symmetric(horizontal: 4),
-          width: _currentPage == index ? 20 : 8,
+          width: currentPage == index ? 20 : 8,
           height: 8,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(4),
-            color: _currentPage == index
+            color: currentPage == index
                 ? const Color(0xFF2B8CBF)
                 : Colors.grey.shade300,
           ),

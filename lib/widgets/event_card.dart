@@ -1,6 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:event_hub/models/event_card.dart';
 import 'package:event_hub/screens/event_details_screen.dart';
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class EventCard extends StatelessWidget {
   final EventModel event;
@@ -15,6 +18,45 @@ class EventCard extends StatelessWidget {
     this.isAdmin = false,
     this.onTap,
   });
+  Future<Map<String, dynamic>> _fetchWeather(String location) async {
+    try {
+      // Logika: Ako ima zareza (npr. "Ulica, Grad"), uzmi poslednji deo (Grad).
+      // Ako nema, uzmi celu reč.
+      final parts = location.split(',');
+      final city = parts.length > 1 ? parts.last.trim() : parts.first.trim();
+
+      // VAŽNO: Koristi Uri.encodeComponent u slučaju da grad ima razmak (npr. "Novi Sad")
+      final encodedCity = Uri.encodeComponent(city);
+      const apiKey = 'e67ca10c5442e532eb31621f7ae5aee1';
+      final url =
+          'https://api.openweathermap.org/data/2.5/weather?q=$encodedCity&appid=$apiKey&units=metric';
+
+      final response = await http.get(Uri.parse(url));
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        // Ako grad nije pronađen, baci specifičnu grešku za debug
+        print("Vremenska greška: ${response.statusCode} za grad: $city");
+        throw Exception('Grad nije pronađen');
+      }
+    } catch (e) {
+      print("STVARNA GREŠKA: $e");
+      throw Exception('Problem sa konekcijom');
+    }
+  }
+
+  Color _parseColor(String hexString) {
+    try {
+      String cleanedHex = hexString
+          .replaceAll('0x', '')
+          .replaceAll('#', '')
+          .trim();
+      return Color(int.parse(cleanedHex, radix: 16));
+    } catch (e) {
+      return const Color(0xFF2B8CBF);
+    }
+  }
 
   void _showDeleteDialog(BuildContext context) {
     showDialog(
@@ -99,23 +141,42 @@ class EventCard extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: event.categoryColor,
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            event.category.toUpperCase(),
-                            style: const TextStyle(
-                              fontSize: 9,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
-                            ),
-                          ),
+                        FutureBuilder<QuerySnapshot>(
+                          future: FirebaseFirestore.instance
+                              .collection('categories')
+                              .where('name', isEqualTo: event.category)
+                              .limit(1)
+                              .get(),
+                          builder: (context, snapshot) {
+                            Color catColor = Colors.grey.shade300;
+                            if (snapshot.hasData &&
+                                snapshot.data!.docs.isNotEmpty) {
+                              var data =
+                                  snapshot.data!.docs.first.data()
+                                      as Map<String, dynamic>;
+                              catColor = _parseColor(
+                                data['color'] ?? "0xFF2B8CBF",
+                              );
+                            }
+                            return Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: catColor,
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                event.category.toUpperCase(),
+                                style: const TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                            );
+                          },
                         ),
                       ],
                     ),
@@ -123,7 +184,8 @@ class EventCard extends StatelessWidget {
                     _infoRow(Icons.calendar_today_outlined, event.date),
                     const SizedBox(height: 4),
                     _infoRow(Icons.location_on_outlined, event.location),
-
+                    const SizedBox(height: 8),
+                    _buildWeatherMiniSection(),
                     if (isAdmin) ...[
                       const Divider(height: 24),
                       Row(
@@ -143,6 +205,7 @@ class EventCard extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 6),
+
                       LinearProgressIndicator(
                         value: procenatPopunjenosti,
                         backgroundColor: Colors.grey[200],
@@ -203,6 +266,37 @@ class EventCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildWeatherMiniSection() {
+    return FutureBuilder<Map<String, dynamic>>(
+      future: _fetchWeather(event.location),
+      builder: (context, snapshot) {
+        if (snapshot.hasData && snapshot.data!.isNotEmpty) {
+          final temp = snapshot.data!['main']['temp'].round();
+          final desc = snapshot.data!['weather'][0]['description'];
+          return Row(
+            children: [
+              const Icon(
+                Icons.wb_cloudy_outlined,
+                size: 14,
+                color: Color(0xFF4CAF50),
+              ),
+              const SizedBox(width: 5),
+              Text(
+                "$temp°C, $desc",
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF4CAF50),
+                ),
+              ),
+            ],
+          );
+        }
+        return const SizedBox(height: 14); 
+      },
     );
   }
 
