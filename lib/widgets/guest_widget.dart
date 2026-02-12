@@ -12,7 +12,7 @@ class GuestText1 extends StatelessWidget {
         'Nastavi kao gost',
         style: TextStyle(
           color: Color(0xFF2B8CBF),
-          //decoration: TextDecoration.underline,
+          
         ),
       ),
     );

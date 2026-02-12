@@ -13,7 +13,6 @@ class EventsFeedScreen extends StatefulWidget {
 }
 
 class _EventsFeedScreenState extends State<EventsFeedScreen> {
-
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = "";
 
@@ -26,7 +25,6 @@ class _EventsFeedScreenState extends State<EventsFeedScreen> {
     _loadCategoryColors();
   }
 
-  
   Future<void> _loadCategoryColors() async {
     try {
       final snapshot = await FirebaseFirestore.instance
@@ -69,7 +67,6 @@ class _EventsFeedScreenState extends State<EventsFeedScreen> {
       backgroundColor: Colors.white,
       body: SafeArea(
         child: Column(
-          
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 20),
@@ -176,11 +173,10 @@ class _EventsFeedScreenState extends State<EventsFeedScreen> {
                                   _buildGuestBanner(context),
                                   const SizedBox(height: 20),
                                 ],
-                                // Prosledi boju kartici da ona ne bi morala da je traži
+
                                 EventCard(
                                   event: event,
                                   isGuest: widget.isGuest,
-                                  // categoryColor: color, // Ako dodaš ovo polje u EventCard
                                 ),
                                 const SizedBox(height: 16),
                               ],

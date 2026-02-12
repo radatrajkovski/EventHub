@@ -38,7 +38,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  
   EventModel _mapDocToModel(String id, Map<String, dynamic> data) {
     return EventModel(
       id: id,
@@ -233,7 +232,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.initState();
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      // Stream-ove inicijalizujemo SAMO JEDNOM ovde
       _myEventsStream = FirebaseFirestore.instance
           .collection('events')
           .where('creatorId', isEqualTo: user.uid)
@@ -286,10 +284,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ValueListenableBuilder<int>(
               valueListenable: _pageNotifier,
               builder: (context, value, child) {
-                return _buildPageIndicator(
-                  docs.length,
-                  value,
-                ); // Prosledi 'value' umesto _currentPage
+                return _buildPageIndicator(docs.length, value);
               },
             ),
           ],

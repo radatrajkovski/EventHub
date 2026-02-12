@@ -7,7 +7,7 @@ import 'package:event_hub/widgets/customtTextField.dart';
 class CreateEventScreen extends StatefulWidget {
   const CreateEventScreen({super.key});
 
-  @override 
+  @override
   State<CreateEventScreen> createState() => _CreateEventScreenState();
 }
 
@@ -75,9 +75,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
               isExpanded: true,
-              hint: const Text(
-                "Izaberi kategoriju",
-              ), // Hint se vidi kad je value == null
+              hint: const Text("Izaberi kategoriju"),
               value: selectedCategory,
               items: docs.map((doc) {
                 final data = doc.data() as Map<String, dynamic>;
@@ -231,7 +229,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
         content: const Text("Vaš događaj je sada javan i vidljiv svima."),
         actions: [
           Center(
-            child: TextButton(  
+            child: TextButton(
               onPressed: () => Navigator.of(context).pushAndRemoveUntil(
                 MaterialPageRoute(
                   builder: (context) =>

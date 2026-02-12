@@ -25,7 +25,7 @@ class PrimaryButton extends StatelessWidget {
         child: Text(
           text,
           style: const TextStyle(
-            fontWeight: FontWeight.bold, // Opciono: da tekst bude uočljiviji
+            fontWeight: FontWeight.bold, 
           ),
         ),
       ),

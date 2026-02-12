@@ -20,7 +20,7 @@ class SearchTextField extends StatelessWidget {
         hintText: hintText,
         prefixIcon: const Icon(Icons.search, color: Color(0xFF2B8CBF)),
         filled: true,
-        fillColor: const Color(0xFFF1F1F1), // Svetlo siva pozadina sa slike
+        fillColor: const Color(0xFFF1F1F1),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 14,

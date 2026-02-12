@@ -257,7 +257,7 @@ class EventCard extends StatelessWidget {
                       icon: const Icon(
                         Icons.delete_outline,
                         size: 22,
-                        color: Colors.black54, // SIVA KANTICA
+                        color: Colors.black54, 
                       ),
                     ),
                   ],

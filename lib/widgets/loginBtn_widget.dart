@@ -21,7 +21,7 @@ class AuthButton extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),
-          elevation: 0, // da ne bude senke kod transparentnog buttona
+          elevation: 0, 
         ),
         onPressed: () {},
         child: Text(text),

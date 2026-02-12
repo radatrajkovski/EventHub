@@ -66,41 +66,29 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
 
   Future<Map<String, dynamic>> _fetchWeather(String location) async {
     try {
-      // Logika: Ako ima zareza (npr. "Ulica, Grad"), uzmi poslednji deo (Grad).
-      // Ako nema, uzmi celu reč.
       final parts = location.split(',');
       final city = parts.length > 1 ? parts.last.trim() : parts.first.trim();
-
-      // VAŽNO: Koristi Uri.encodeComponent u slučaju da grad ima razmak (npr. "Novi Sad")
       final encodedCity = Uri.encodeComponent(city);
       const apiKey = 'e67ca10c5442e532eb31621f7ae5aee1';
       final url =
           'https://api.openweathermap.org/data/2.5/weather?q=$encodedCity&appid=$apiKey&units=metric';
-
       final response = await http.get(Uri.parse(url));
-
       if (response.statusCode == 200) {
         return json.decode(response.body);
       } else {
-        // Ako grad nije pronađen, baci specifičnu grešku za debug
-        print("Vremenska greška: ${response.statusCode} za grad: $city");
         throw Exception('Grad nije pronađen');
       }
     } catch (e) {
-      print("Greška u mrežnom pozivu: $e");
       throw Exception('Problem sa konekcijom');
     }
   }
-
   Future<void> _handleJoin() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
-
     setState(() => _isJoining = true);
     DocumentReference eventRef = FirebaseFirestore.instance
         .collection('events')
         .doc(widget.event.id);
-
     try {
       await FirebaseFirestore.instance.runTransaction((transaction) async {
         DocumentSnapshot snapshot = await transaction.get(eventRef);
@@ -161,10 +149,8 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
   Future<void> _updateEvent() async {
     setState(
       () => _isJoining = true,
-    ); // Koristimo isti loader radi jednostavnosti
+    );
     try {
-      // Prvo izračunamo koliko ima slobodnih mesta nakon promene ukupnog broja
-      // (Stari ukupni broj - Stara slobodna mesta = Broj zauzetih mesta)
       int zauzetaMesta = widget.event.spots - widget.event.freeSpots;
       int noviUkupniBroj =
           int.tryParse(_spotsController.text) ?? widget.event.spots;
@@ -176,13 +162,13 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
           .update({
             'title': _titleController.text,
             'location': _locationController.text,
-            'date': _dateController.text, // OVO JE ONO ŠTO JE FALILO
-            'time': _timeController.text, // OVO JE ONO ŠTO JE FALILO
+            'date': _dateController.text, 
+            'time': _timeController.text,
             'description': _descriptionController.text,
             'spots': noviUkupniBroj,
             'freeSpots': novaSlobodnaMesta < 0
                 ? 0
-                : novaSlobodnaMesta, // Ne sme biti negativno
+                : novaSlobodnaMesta, 
           });
 
       _showSuccessDialog();
@@ -356,11 +342,9 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
         if (snapshot.hasError) {
           return Text("Greška: ${snapshot.error}");
         }
-
         final temp = snapshot.data!['main']['temp'].round();
         final desc = snapshot.data!['weather'][0]['description'];
         final icon = snapshot.data!['weather'][0]['icon'];
-
         return Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
