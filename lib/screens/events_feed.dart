@@ -141,9 +141,9 @@ class _EventsFeedScreenState extends State<EventsFeedScreen> {
 
                         final allDocs = snapshot.data!.docs;
                         final filteredDocs = allDocs.where((doc) {
-                          final title = doc['title'].toString().toLowerCase();
+                        final title = doc['title'].toString().toLowerCase();
                           return title.contains(_searchQuery);
-                        }).toList();
+                        } ).toList();
 
                         if (filteredDocs.isEmpty) {
                           return const Center(
